@@ -75,40 +75,35 @@ require_access_code()
 
 
 pages = {
-    "Workspace": [
+    "PMM WORKFLOW": [
         st.Page(
             render_overview,
-            title="Overview",
-            icon="🏠",
+            title="Start Here",
+            icon=":material/home:",
             default=True,
         ),
         st.Page(
             render_signal_hub,
-            title="Signal Hub",
-            icon="🔌",
+            title="1. Prepare Evidence",
+            icon=":material/database:",
         ),
-    ],
-    "Agents": [
         st.Page(
             render_customer_intelligence,
-            title="Customer Intelligence",
-            icon="🧠",
+            title="2. Generate Intelligence",
+            icon=":material/psychology:",
         ),
         st.Page(
             render_governance,
-            title="Governance Reviewer",
-            icon="🛡️",
+            title="3. Review Recommendation",
+            icon=":material/fact_check:",
         ),
-    ],
-    "Evidence": [
         st.Page(
             render_evidence,
-            title="Evidence & Baseline",
-            icon="📚",
+            title="4. Evidence & Audit",
+            icon=":material/manage_search:",
         ),
     ],
 }
-
 
 current_page = st.navigation(pages)
 

@@ -421,59 +421,120 @@ def _render_governance(review, frame: pd.DataFrame) -> None:
 def render_overview() -> None:
     render_hero()
 
-    product = html.escape(
-        str(st.session_state.product_name)
-    )
-    goal = html.escape(
-        str(st.session_state.launch_goal)
-    )
-    market = html.escape(
-        str(st.session_state.target_market)
-    )
-
-    st.html(
-        """
-        <section class="overview-section">
-            <h2 class="overview-heading">Guided workflow</h2>
-
-            <div class="workflow-grid">
-                <article class="workflow-card">
-                    <div class="workflow-step">Step 1</div>
-                    <h3>Signal Hub</h3>
-                    <p>
-                        Connect and normalize customer, competitive,
-                        organizational, and product-risk evidence.
-                    </p>
-                </article>
-
-                <article class="workflow-card">
-                    <div class="workflow-step">Step 2</div>
-                    <h3>Customer Intelligence</h3>
-                    <p>
-                        Generate evidence-backed PMM recommendations,
-                        implications, guardrails, and research gaps.
-                    </p>
-                </article>
-
-                <article class="workflow-card">
-                    <div class="workflow-step">Step 3</div>
-                    <h3>Governance Review</h3>
-                    <p>
-                        Approve, revise, or reject recommendations
-                        before a Product Marketer acts.
-                    </p>
-                </article>
-            </div>
-        </section>
-        """
-    )
+    product = html.escape(str(st.session_state.product_name))
+    goal = html.escape(str(st.session_state.launch_goal))
+    market = html.escape(str(st.session_state.target_market))
 
     st.html(
         f"""
-        <section class="overview-section launch-section">
-            <h2 class="overview-heading">Current launch</h2>
+        <section class="principle-panel">
+            <div class="principle-eyebrow">
+                PRODUCT PRINCIPLE
+            </div>
+
+            <div class="principle-title">
+                From Signal → To Decision
+            </div>
+
+            <div class="principle-flow">
+
+                <article class="principle-step">
+                    <span>01</span>
+                    <strong>Signals & Evidence</strong>
+                    <small>
+                        Customer · Competitive · Organizational · Risk
+                    </small>
+                </article>
+
+                <div class="principle-arrow">→</div>
+
+                <article class="principle-step">
+                    <span>02</span>
+                    <strong>PMM Intelligence</strong>
+                    <small>
+                        Problems · Segments · PMM implications
+                    </small>
+                </article>
+
+                <div class="principle-arrow">→</div>
+
+                <article class="principle-step">
+                    <span>03</span>
+                    <strong>Governance</strong>
+                    <small>
+                        Evidence validation · Risk · Confidence
+                    </small>
+                </article>
+
+                <div class="principle-arrow">→</div>
+
+                <article class="principle-step">
+                    <span>04</span>
+                    <strong>PMM Decision</strong>
+                    <small>
+                        Positioning · Messaging · GTM action
+                    </small>
+                </article>
+
+            </div>
+
+            <div class="principle-footer">
+                Insight before generation. Evidence before recommendation.
+                Human judgment before execution.
+            </div>
+        </section>
+
+        <section class="overview-section">
+            <h2 class="overview-heading">How the workflow works</h2>
+
+            <div class="workflow-grid">
+
+                <article class="workflow-card">
+                    <div class="workflow-step">STEP 1</div>
+                    <h3>Prepare Evidence</h3>
+                    <p>
+                        Connect, normalize, deduplicate, and classify the
+                        signals relevant to the launch decision.
+                    </p>
+                </article>
+
+                <article class="workflow-card">
+                    <div class="workflow-step">STEP 2</div>
+                    <h3>Generate Intelligence</h3>
+                    <p>
+                        The Customer Intelligence Agent synthesizes evidence
+                        into customer problems, segments, PMM implications,
+                        recommendations, and next actions.
+                    </p>
+                </article>
+
+                <article class="workflow-card">
+                    <div class="workflow-step">STEP 3</div>
+                    <h3>Review Recommendation</h3>
+                    <p>
+                        The Governance Reviewer checks evidence alignment,
+                        confidence, unsupported claims, risks, and required
+                        human escalation.
+                    </p>
+                </article>
+
+                <article class="workflow-card">
+                    <div class="workflow-step">STEP 4</div>
+                    <h3>Evidence & Audit</h3>
+                    <p>
+                        Inspect the deterministic baseline and trace every
+                        recommendation back to the normalized source evidence.
+                    </p>
+                </article>
+
+            </div>
+        </section>
+
+        <section class="overview-section">
+            <h2 class="overview-heading">Current launch context</h2>
 
             <div class="launch-grid">
+
                 <article class="launch-card">
                     <div class="launch-label">Product</div>
                     <div class="launch-value">{product}</div>
@@ -488,13 +549,14 @@ def render_overview() -> None:
                     <div class="launch-label">Market</div>
                     <div class="launch-value">{market}</div>
                 </article>
+
             </div>
         </section>
         """
     )
 
     st.info(
-        "Start with **Signal Hub** from the sidebar."
+        "Start with **1. Prepare Evidence** from the sidebar."
     )
 
 
