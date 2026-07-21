@@ -71,7 +71,7 @@ def require_access_code() -> None:
     st.stop()
 
 
-require_access_code()
+# require_access_code()
 
 
 pages = {
