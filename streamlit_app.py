@@ -1,0 +1,169 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import streamlit as st
+from dotenv import load_dotenv
+
+from src.multipage import (
+    initialize_state,
+    render_customer_intelligence,
+    render_evidence,
+    render_governance,
+    render_overview,
+    render_signal_hub,
+)
+from src.ui import apply_global_styles
+
+
+PROJECT_ROOT = Path(__file__).parent
+load_dotenv(
+    dotenv_path=PROJECT_ROOT / ".env"
+)
+
+st.set_page_config(
+    page_title="PMM Intelligence OS",
+    page_icon="🧭",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+apply_global_styles()
+initialize_state()
+
+
+def require_access_code() -> None:
+    expected_code = os.getenv(
+        "APP_PASSWORD",
+        "",
+    ).strip()
+
+    if not expected_code:
+        return
+
+    if st.session_state.get(
+        "authenticated"
+    ):
+        return
+
+    st.markdown(
+        "## Private portfolio demonstration"
+    )
+
+    entered_code = st.text_input(
+        "Access code",
+        type="password",
+    )
+
+    if st.button(
+        "Open dashboard",
+        type="primary",
+    ):
+        if entered_code == expected_code:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error(
+                "Incorrect access code."
+            )
+
+    st.stop()
+
+
+require_access_code()
+
+
+pages = {
+    "Workspace": [
+        st.Page(
+            render_overview,
+            title="Overview",
+            icon="🏠",
+            default=True,
+        ),
+        st.Page(
+            render_signal_hub,
+            title="Signal Hub",
+            icon="🔌",
+        ),
+    ],
+    "Agents": [
+        st.Page(
+            render_customer_intelligence,
+            title="Customer Intelligence",
+            icon="🧠",
+        ),
+        st.Page(
+            render_governance,
+            title="Governance Reviewer",
+            icon="🛡️",
+        ),
+    ],
+    "Evidence": [
+        st.Page(
+            render_evidence,
+            title="Evidence & Baseline",
+            icon="📚",
+        ),
+    ],
+}
+
+
+current_page = st.navigation(pages)
+
+
+with st.sidebar:
+    st.divider()
+    st.markdown("### Launch context")
+
+    st.text_input(
+        "Product",
+        key="product_name",
+    )
+    st.text_input(
+        "Launch goal",
+        key="launch_goal",
+    )
+    st.text_input(
+        "Target market",
+        key="target_market",
+    )
+
+    st.divider()
+    st.markdown("### Workflow status")
+
+    frame = st.session_state.evidence_frame
+
+    evidence_ready = (
+        frame is not None
+        and not frame.empty
+    )
+
+    intelligence_ready = (
+        st.session_state.gemini_report
+        is not None
+    )
+
+    governance_ready = (
+        st.session_state.governance_review
+        is not None
+    )
+
+    st.caption(
+        f"{'✅' if evidence_ready else '○'} "
+        "Evidence prepared"
+    )
+
+    st.caption(
+        f"{'✅' if intelligence_ready else '○'} "
+        "Intelligence generated"
+    )
+
+    st.caption(
+        f"{'✅' if governance_ready else '○'} "
+        "Governance completed"
+    )
+
+
+current_page.run()

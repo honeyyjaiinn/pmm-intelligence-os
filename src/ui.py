@@ -54,7 +54,7 @@ CSS = """
 
 .pmm-title {
     color: #FFFFFF;
-    font-size: clamp(2.15rem, 5vw, 3.65rem);
+    font-size: clamp(1.9rem, 4vw, 3rem);
     line-height: 1.03;
     letter-spacing: -0.055em;
     font-weight: 780;
@@ -147,6 +147,136 @@ h2 {
 hr {
     border-color: rgba(255, 255, 255, 0.08);
 }
+
+/* Multipage content typography */
+[data-testid="stMainBlockContainer"] h2 {
+    font-size: 1.8rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Workflow-card headings */
+[data-testid="stMainBlockContainer"]
+[data-testid="stVerticalBlockBorderWrapper"] h3 {
+    font-size: 1.15rem !important;
+    line-height: 1.28 !important;
+    letter-spacing: -0.02em !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.55rem !important;
+}
+
+/* Workflow-card descriptions */
+[data-testid="stMainBlockContainer"]
+[data-testid="stVerticalBlockBorderWrapper"] p {
+    font-size: 0.91rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 0 !important;
+}
+
+/* Sidebar section headings */
+[data-testid="stSidebar"] h3 {
+    font-size: 1.05rem !important;
+    line-height: 1.25 !important;
+}
+
+
+/* Overview multipage cards */
+.overview-section {
+    margin-top: 2.2rem;
+}
+
+.overview-heading {
+    margin: 0 0 1rem 0;
+    font-size: 1.65rem;
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+    color: #F5F7FA;
+}
+
+.workflow-grid,
+.launch-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.workflow-card {
+    min-height: 150px;
+    height: 100%;
+    padding: 1.15rem 1.2rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    background: rgba(12, 18, 32, 0.72);
+    box-sizing: border-box;
+}
+
+.workflow-step {
+    margin-bottom: 0.45rem;
+    color: #FF8792;
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.workflow-card h3 {
+    margin: 0 0 0.55rem 0;
+    color: #F7F8FC;
+    font-size: 1.12rem;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+}
+
+.workflow-card p {
+    margin: 0;
+    color: #BAC3D6;
+    font-size: 0.87rem;
+    line-height: 1.5;
+}
+
+.launch-section {
+    margin-top: 2.6rem;
+}
+
+.launch-card {
+    min-height: 105px;
+    padding: 1.1rem 1.15rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(20, 29, 50, 0.85);
+    box-sizing: border-box;
+}
+
+.launch-label {
+    margin-bottom: 0.45rem;
+    color: #98A5BC;
+    font-size: 0.73rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.launch-value {
+    color: #F5F7FA;
+    font-size: 1.18rem;
+    line-height: 1.3;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+    .workflow-grid,
+    .launch-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .workflow-card,
+    .launch-card {
+        min-height: auto;
+    }
+}
+
 </style>
 """
 
@@ -168,7 +298,17 @@ HERO = """
 """
 
 
-def apply_ui() -> None:
-    """Apply presentation styling without changing product logic."""
+def apply_global_styles() -> None:
+    """Apply shared CSS without displaying the homepage hero."""
     st.html(CSS)
+
+
+def render_hero() -> None:
+    """Display the hero only on the Overview page."""
     st.html(HERO)
+
+
+def apply_ui() -> None:
+    """Keep app_v4.py working."""
+    apply_global_styles()
+    render_hero()
