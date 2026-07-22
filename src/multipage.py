@@ -1046,11 +1046,12 @@ def render_agent_configuration() -> None:
         "and runtime infrastructure."
     )
 
-    intelligence_tab, governance_tab, runtime_tab = st.tabs(
+    intelligence_tab, governance_tab, runtime_tab, prompt_ops_tab = st.tabs(
         [
             "Customer Intelligence",
             "Governance Reviewer",
             "Scale & Runtime Policy",
+            "Prompt Operations",
         ]
     )
 
@@ -1339,6 +1340,109 @@ def render_agent_configuration() -> None:
                     "Bucket hundreds of thousands of records and retrieve "
                     "only decision-relevant evidence."
                 )
+
+
+
+    with prompt_ops_tab:
+        st.markdown("### Prompt Operations")
+        st.caption(
+            "Treat prompts as governed operational logic: versioned, "
+            "evaluated, monitored, and safely rolled back."
+        )
+
+        st.info(
+            "**Current MVP:** prompt contracts are implemented in Python. "
+            "**Production path:** external prompt registry with owners, "
+            "template variables, regression tests, approval workflow, "
+            "observability, and rollback."
+        )
+
+        lifecycle_cols = st.columns(6)
+        lifecycle = [
+            ("Draft", "Define or update template"),
+            ("Evaluate", "Run regression test cases"),
+            ("Approve", "PMM / governance sign-off"),
+            ("Deploy", "Promote active version"),
+            ("Monitor", "Track quality and failures"),
+            ("Rollback", "Restore last safe version"),
+        ]
+
+        for column, (stage, description) in zip(lifecycle_cols, lifecycle):
+            with column:
+                with st.container(border=True):
+                    st.markdown(f"**{stage}**")
+                    st.caption(description)
+
+        left, right = st.columns(2)
+
+        with left:
+            with st.container(border=True):
+                st.markdown("#### Customer Intelligence prompt")
+                st.write("**Prompt ID:** `intelligence-agent`")
+                st.write("**Active version:** `v1.2`")
+                st.write("**Owner:** Product Marketing Capabilities")
+                st.write("**Status:** Production candidate")
+                st.write(
+                    "**Template variables:** product, launch goal, "
+                    "target market, evidence packet, agent configuration"
+                )
+                st.success("Regression test: passed")
+                st.caption("Rollback version: v1.1")
+
+        with right:
+            with st.container(border=True):
+                st.markdown("#### Governance Reviewer prompt")
+                st.write("**Prompt ID:** `governance-reviewer`")
+                st.write("**Active version:** `v1.1`")
+                st.write("**Owner:** AI Governance / PMM Capabilities")
+                st.write("**Status:** Production candidate")
+                st.write(
+                    "**Template variables:** original evidence, draft "
+                    "recommendation, review policy, escalation categories"
+                )
+                st.success("Regression test: passed")
+                st.caption("Rollback version: v1.0")
+
+        st.markdown("### PMM control vs. prompt governance")
+        col_1, col_2, col_3, col_4 = st.columns(4)
+
+        with col_1:
+            with st.container(border=True):
+                st.markdown("**PMM-controlled fields**")
+                st.caption(
+                    "Objective, output depth, evidence threshold, "
+                    "confidence policy, guardrails, escalation rules."
+                )
+
+        with col_2:
+            with st.container(border=True):
+                st.markdown("**Versioned templates**")
+                st.caption(
+                    "System instructions and prompt structure are managed "
+                    "as governed assets, not freeform text boxes."
+                )
+
+        with col_3:
+            with st.container(border=True):
+                st.markdown("**Evaluation suite**")
+                st.caption(
+                    "Regression tests check citation quality, unsupported "
+                    "claims, confidence calibration, and policy compliance."
+                )
+
+        with col_4:
+            with st.container(border=True):
+                st.markdown("**Release and rollback**")
+                st.caption(
+                    "Prompt changes can be approved, deployed, monitored, "
+                    "and rolled back when quality regresses."
+                )
+
+        st.warning(
+            "No raw prompt editing is exposed here. PMMs control business "
+            "behavior through structured settings; prompt template changes "
+            "would follow a governed release process."
+        )
 
 
 def render_evidence() -> None:
