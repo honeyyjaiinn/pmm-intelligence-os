@@ -918,9 +918,22 @@ def render_sidebar() -> None:
         )
         _activate_launch(selected)
 
-        if st.button("＋ Add new launch", use_container_width=True):
-            st.session_state.show_new_launch_form = True
-            st.rerun()
+        if st.session_state.show_new_launch_form:
+            if st.button(
+                "← Back to launch",
+                key="sidebar_back_to_launch",
+                use_container_width=True,
+            ):
+                st.session_state.show_new_launch_form = False
+                st.rerun()
+        else:
+            if st.button(
+                "＋ Add new launch",
+                key="sidebar_add_new_launch",
+                use_container_width=True,
+            ):
+                st.session_state.show_new_launch_form = True
+                st.rerun()
 
         st.divider()
         st.radio(
@@ -982,6 +995,16 @@ def _generated_feedback(name: str, category: str, goal: str) -> list[str]:
 
 
 def render_new_launch_form() -> None:
+    back_col, _ = st.columns([1.2, 5])
+    with back_col:
+        if st.button(
+            "← Back to launch",
+            key="page_back_to_launch",
+            use_container_width=True,
+        ):
+            st.session_state.show_new_launch_form = False
+            st.rerun()
+
     st.title("Set up a new launch")
     st.caption(
         "Create a launch configuration, add seed feedback, and run the same one-click intelligence and governance pipeline."
