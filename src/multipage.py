@@ -34,7 +34,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 def initialize_state() -> None:
     defaults = {
         "product_name": "AI Seller Assistant",
-        "launch_goal": "Increase seller adoption",
+        "launch_goal": "Increase seller adoption while preserving trust and seller control",
         "target_market": "US marketplace",
 
         "use_reviews": True,
@@ -50,6 +50,7 @@ def initialize_state() -> None:
         "subreddit": "Ebay",
         "reddit_query": "seller listing",
 
+        "demo_evidence_initialized": False,
         "evidence_frame": None,
         "selected_sources": [],
         "connector_errors": [],
@@ -65,6 +66,48 @@ def initialize_state() -> None:
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+    # Ensure the public demo never opens with blank launch context.
+    launch_defaults = {
+        "product_name": "AI Seller Assistant",
+        "launch_goal": (
+            "Increase seller adoption while preserving trust "
+            "and seller control"
+        ),
+        "target_market": "US marketplace",
+    }
+
+    for key, value in launch_defaults.items():
+        current_value = str(
+            st.session_state.get(key, "")
+        ).strip()
+
+        if not current_value:
+            st.session_state[key] = value
+
+    # Prepare only reliable sample evidence for each new browser session.
+    # This does not call Gemini or consume model quota.
+    if not st.session_state.demo_evidence_initialized:
+        st.session_state.use_reviews = True
+        st.session_state.use_interviews = True
+        st.session_state.use_support = True
+        st.session_state.use_past_launches = True
+
+        # Keep optional live connectors off for the initial demo.
+        for connector_key in (
+            "use_cpsc",
+            "use_news",
+            "use_reddit",
+        ):
+            if connector_key in st.session_state:
+                st.session_state[connector_key] = False
+
+        frame, errors, selected_sources = _prepare_evidence()
+
+        st.session_state.evidence_frame = frame
+        st.session_state.connector_errors = errors
+        st.session_state.selected_sources = selected_sources
+        st.session_state.demo_evidence_initialized = True
 
 
 def _prepare_evidence():
@@ -571,35 +614,35 @@ def render_signal_hub() -> None:
         left, right = st.columns(2)
 
         with left:
-            st.checkbox(
+            st.session_state.use_reviews = st.checkbox(
                 "Sample app reviews",
-                key="use_reviews",
+                value=True,
             )
-            st.checkbox(
+            st.session_state.use_interviews = st.checkbox(
                 "Sample customer interviews",
-                key="use_interviews",
+                value=True,
             )
-            st.checkbox(
+            st.session_state.use_support = st.checkbox(
                 "Sample support tickets",
-                key="use_support",
+                value=True,
             )
-            st.checkbox(
+            st.session_state.use_past_launches = st.checkbox(
                 "Sample past launch learnings",
-                key="use_past_launches",
+                value=True,
             )
 
         with right:
-            st.checkbox(
+            st.session_state.use_cpsc = st.checkbox(
                 "CPSC recalls",
-                key="use_cpsc",
+                value=False,
             )
-            st.checkbox(
+            st.session_state.use_news = st.checkbox(
                 "NewsAPI",
-                key="use_news",
+                value=False,
             )
-            st.checkbox(
+            st.session_state.use_reddit = st.checkbox(
                 "Reddit API",
-                key="use_reddit",
+                value=False,
             )
 
         settings_1, settings_2 = st.columns(2)
