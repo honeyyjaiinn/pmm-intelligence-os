@@ -272,6 +272,7 @@ def review_intelligence_report(
     product_name: str,
     launch_goal: str,
     target_market: str,
+    configuration: dict[str, object] | None = None,
 ) -> GovernanceReview:
     """
     Independently audit a draft Customer Intelligence report against
@@ -298,6 +299,103 @@ def review_intelligence_report(
         indent=2
     )
 
+    # PMM_CONTROLLED_GOVERNANCE_CONFIG_V1
+    configuration = configuration or {}
+
+    strictness = str(
+        configuration.get(
+            "strictness",
+            "High",
+        )
+    )
+
+    required_alignment = str(
+        configuration.get(
+            "required_alignment",
+            "Strong",
+        )
+    )
+
+    downgrade_overconfidence = bool(
+        configuration.get(
+            "downgrade_overconfidence",
+            True,
+        )
+    )
+
+    human_review_threshold = str(
+        configuration.get(
+            "human_review_threshold",
+            "High-risk or unsupported claims",
+        )
+    )
+
+    escalation_categories_raw = configuration.get(
+        "escalation_categories",
+        [
+            "PMM",
+            "Product",
+            "Research",
+            "Legal",
+            "Trust & Safety",
+        ],
+    )
+
+    if isinstance(
+        escalation_categories_raw,
+        (list, tuple, set),
+    ):
+        escalation_categories = [
+            str(item)
+            for item in escalation_categories_raw
+        ]
+    else:
+        escalation_categories = [
+            str(escalation_categories_raw)
+        ]
+
+    escalation_text = (
+        ", ".join(escalation_categories)
+        if escalation_categories
+        else "PMM"
+    )
+
+    review_temperature = {
+        "Standard": 0.2,
+        "High": 0.1,
+        "Maximum": 0.0,
+    }.get(
+        strictness,
+        0.1,
+    )
+
+    alignment_instruction = (
+        "An insight may only be approved when evidence alignment "
+        f"is {required_alignment.lower()} or stronger."
+    )
+
+    confidence_instruction = (
+        "Downgrade confidence when evidence is narrow, "
+        "contradictory, weakly segmented, or source-limited."
+        if downgrade_overconfidence
+        else
+        "Challenge confidence when necessary, but do not "
+        "automatically downgrade it."
+    )
+
+    governance_configuration = f"""
+Review strictness: {strictness}
+Required evidence alignment: {required_alignment}
+Human-review threshold: {human_review_threshold}
+Permitted escalation categories: {escalation_text}
+
+Approval policy:
+{alignment_instruction}
+
+Confidence policy:
+{confidence_instruction}
+""".strip()
+
     prompt = f"""
 {REVIEWER_INSTRUCTIONS}
 
@@ -311,6 +409,9 @@ Launch goal:
 
 Target market:
 {target_market}
+
+ACTIVE GOVERNANCE CONFIGURATION
+{governance_configuration}
 
 ORIGINAL NORMALIZED EVIDENCE
 
@@ -345,7 +446,7 @@ draft. Produce exactly one InsightReview for each draft insight.
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 response_schema=GovernanceReview,
-                temperature=0.1,
+                temperature=review_temperature,
             ),
         )
 
@@ -403,5 +504,103 @@ draft. Produce exactly one InsightReview for each draft insight.
                 f"for '{item.insight_title}': "
                 f"{invalid_row_ids}"
             )
+
+    alignment_rank = {
+        "weak": 0,
+        "partial": 1,
+        "strong": 2,
+    }
+
+    required_rank = alignment_rank.get(
+        required_alignment.lower(),
+        2,
+    )
+
+    for item in review.insight_reviews:
+        current_alignment = str(
+            item.evidence_alignment
+        ).lower()
+
+        current_rank = alignment_rank.get(
+            current_alignment,
+            0,
+        )
+
+        if (
+            item.verdict == "approve"
+            and current_rank < required_rank
+        ):
+            item.verdict = "revise"
+            item.reviewer_rationale = (
+                item.reviewer_rationale
+                + " The active governance policy requires "
+                + f"{required_alignment.lower()} evidence "
+                + "alignment before approval."
+            ).strip()
+
+        if (
+            strictness == "Maximum"
+            and current_alignment == "weak"
+        ):
+            item.verdict = "reject"
+            item.human_review_required = True
+
+        if (
+            downgrade_overconfidence
+            and current_alignment != "strong"
+        ):
+            if item.revised_confidence_level == "high":
+                item.revised_confidence_level = "medium"
+
+            elif (
+                current_alignment == "weak"
+                and item.revised_confidence_level == "medium"
+            ):
+                item.revised_confidence_level = "low"
+
+        severities = {
+            str(issue.severity).lower()
+            for issue in item.issues
+        }
+
+        categories = {
+            str(issue.category).lower()
+            for issue in item.issues
+        }
+
+        threshold_requires_review = False
+
+        if human_review_threshold == "Any material revision":
+            threshold_requires_review = (
+                item.verdict != "approve"
+                or bool(item.issues)
+            )
+
+        elif (
+            human_review_threshold
+            == "High-risk or unsupported claims"
+        ):
+            threshold_requires_review = bool(
+                severities.intersection(
+                    {"high", "critical"}
+                )
+                or categories.intersection(
+                    {
+                        "unsupported_claim",
+                        "safety_or_legal",
+                        "source_misclassification",
+                    }
+                )
+            )
+
+        elif human_review_threshold == "Critical issues only":
+            threshold_requires_review = (
+                "critical" in severities
+            )
+
+        item.human_review_required = (
+            item.human_review_required
+            or threshold_requires_review
+        )
 
     return review

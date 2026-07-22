@@ -59,6 +59,53 @@ def initialize_state() -> None:
         "baseline_summary": None,
         "baseline_cards": [],
 
+        # Customer Intelligence Agent configuration
+        "intel_analysis_objective": "Launch adoption and readiness",
+        "intel_output_depth": "Balanced",
+        "intel_max_insights": 4,
+        "intel_min_evidence_records": 2,
+        "intel_segment_focus": "All evidence-supported segments",
+        "intel_confidence_policy": "Conservative",
+        "intel_require_counter_evidence": True,
+        "intel_require_guardrails": True,
+
+        # Governance Agent configuration
+        "governance_strictness": "High",
+        "governance_required_alignment": "Strong",
+        "governance_downgrade_overconfidence": True,
+        "governance_human_review_threshold": (
+            "High-risk or unsupported claims"
+        ),
+        "governance_escalation_categories": [
+            "PMM",
+            "Product",
+            "Research",
+            "Legal",
+            "Trust & Safety",
+        ],
+
+        # Intended production runtime policy
+        "runtime_preprocessing_policy": (
+            "Rules + lightweight ML"
+        ),
+        "runtime_bucket_dimensions": [
+            "Sentiment",
+            "Topic",
+            "Segment",
+            "Region",
+            "Product version",
+            "Recency",
+        ],
+        "runtime_retrieval_policy": (
+            "RAG over evidence buckets and representative records"
+        ),
+        "runtime_model_routing": (
+            "Low-cost tagging models; reasoning model for synthesis"
+        ),
+        "runtime_optimization_priority": (
+            "Balanced quality, latency, and cost"
+        ),
+
         "gemini_report": None,
         "governance_review": None,
     }
@@ -801,8 +848,54 @@ def render_customer_intelligence() -> None:
                         target_market=(
                             st.session_state.target_market
                         ),
+                        configuration={
+                            "analysis_objective": (
+                                st.session_state
+                                .intel_analysis_objective
+                            ),
+                            "output_depth": (
+                                st.session_state
+                                .intel_output_depth
+                            ),
+                            "maximum_insights": (
+                                st.session_state
+                                .intel_max_insights
+                            ),
+                            "minimum_evidence_records": (
+                                st.session_state
+                                .intel_min_evidence_records
+                            ),
+                            "segment_focus": (
+                                st.session_state
+                                .intel_segment_focus
+                            ),
+                            "confidence_policy": (
+                                st.session_state
+                                .intel_confidence_policy
+                            ),
+                            "require_counter_evidence": (
+                                st.session_state
+                                .intel_require_counter_evidence
+                            ),
+                            "require_guardrails": (
+                                st.session_state
+                                .intel_require_guardrails
+                            ),
+                        },
                     )
                 )
+
+            configured_maximum = int(
+
+                st.session_state.intel_max_insights
+
+            )
+
+            report.insights = report.insights[
+
+                :configured_maximum
+
+            ]
 
             st.session_state.gemini_report = report
             st.session_state.governance_review = None
@@ -822,6 +915,25 @@ def render_customer_intelligence() -> None:
             "Run the agent to create the report."
         )
         return
+
+    # Enforce the active PMM configuration at the rendering boundary.
+    # This also fixes reports left in session state from an earlier run.
+    configured_maximum = int(
+        st.session_state.get(
+            "intel_max_insights",
+            4,
+        )
+    )
+
+    if len(report.insights) > configured_maximum:
+        report = report.model_copy(
+            update={
+                "insights": report.insights[
+                    :configured_maximum
+                ]
+            }
+        )
+        st.session_state.gemini_report = report
 
     _render_intelligence(report, frame)
 
@@ -870,6 +982,28 @@ def render_governance() -> None:
                         target_market=(
                             st.session_state.target_market
                         ),
+                        configuration={
+                            "strictness": (
+                                st.session_state
+                                .governance_strictness
+                            ),
+                            "required_alignment": (
+                                st.session_state
+                                .governance_required_alignment
+                            ),
+                            "downgrade_overconfidence": (
+                                st.session_state
+                                .governance_downgrade_overconfidence
+                            ),
+                            "human_review_threshold": (
+                                st.session_state
+                                .governance_human_review_threshold
+                            ),
+                            "escalation_categories": (
+                                st.session_state
+                                .governance_escalation_categories
+                            ),
+                        },
                     )
                 )
 
@@ -895,6 +1029,316 @@ def render_governance() -> None:
         return
 
     _render_governance(review, frame)
+
+
+
+def render_agent_configuration() -> None:
+    st.title("Agent Configuration")
+    st.caption(
+        "Configure agent business behavior through structured controls "
+        "rather than editing raw prompts."
+    )
+
+    st.info(
+        "**Control model:** PMM owns objectives, evidence standards, "
+        "confidence policy, guardrails, and escalation rules. "
+        "The platform team owns model deployment, security, reliability, "
+        "and runtime infrastructure."
+    )
+
+    intelligence_tab, governance_tab, runtime_tab = st.tabs(
+        [
+            "Customer Intelligence",
+            "Governance Reviewer",
+            "Scale & Runtime Policy",
+        ]
+    )
+
+    with intelligence_tab:
+        st.markdown("### Customer Intelligence Agent")
+        st.write(
+            "Controls how the agent interprets evidence and structures "
+            "its Product Marketing recommendations."
+        )
+
+        with st.form("intelligence_configuration_form"):
+            left, right = st.columns(2)
+
+            with left:
+                st.selectbox(
+                    "Analysis objective",
+                    [
+                        "Launch adoption and readiness",
+                        "Customer problem discovery",
+                        "Positioning and messaging",
+                        "Audience and segmentation",
+                        "Post-launch optimization",
+                    ],
+                    key="intel_analysis_objective",
+                )
+
+                st.selectbox(
+                    "Output depth",
+                    [
+                        "Executive",
+                        "Balanced",
+                        "Deep dive",
+                    ],
+                    key="intel_output_depth",
+                )
+
+                st.slider(
+                    "Target strategic insights",
+                    min_value=2,
+                    max_value=6,
+                    key="intel_max_insights",
+                )
+
+                st.number_input(
+                    "Minimum supporting evidence records",
+                    min_value=1,
+                    max_value=10,
+                    step=1,
+                    key="intel_min_evidence_records",
+                )
+
+            with right:
+                st.selectbox(
+                    "Segment focus",
+                    [
+                        "All evidence-supported segments",
+                        "Sellers",
+                        "Buyers",
+                        "New users",
+                        "Power users",
+                    ],
+                    key="intel_segment_focus",
+                )
+
+                st.selectbox(
+                    "Confidence policy",
+                    [
+                        "Conservative",
+                        "Balanced",
+                        "Exploratory",
+                    ],
+                    key="intel_confidence_policy",
+                )
+
+                st.checkbox(
+                    "Require counter-evidence or uncertainty",
+                    key="intel_require_counter_evidence",
+                )
+
+                st.checkbox(
+                    "Require a guardrail for every recommendation",
+                    key="intel_require_guardrails",
+                )
+
+            intelligence_saved = st.form_submit_button(
+                "Save Intelligence Agent Configuration",
+                type="primary",
+                use_container_width=True,
+            )
+
+        if intelligence_saved:
+            # Existing reports no longer reflect the active configuration.
+            st.session_state.gemini_report = None
+            st.session_state.governance_review = None
+            st.success(
+                "Customer Intelligence configuration saved. "
+                "Generate a new report to apply it."
+            )
+
+    with governance_tab:
+        st.markdown("### Reviewer and Governance Agent")
+        st.write(
+            "Controls how strictly recommendations are audited before "
+            "they are surfaced for human PMM decision-making."
+        )
+
+        with st.form("governance_configuration_form"):
+            left, right = st.columns(2)
+
+            with left:
+                st.selectbox(
+                    "Review strictness",
+                    [
+                        "Standard",
+                        "High",
+                        "Maximum",
+                    ],
+                    key="governance_strictness",
+                )
+
+                st.selectbox(
+                    "Required evidence alignment",
+                    [
+                        "Partial",
+                        "Strong",
+                    ],
+                    key="governance_required_alignment",
+                )
+
+                st.checkbox(
+                    "Downgrade confidence when evidence is narrow",
+                    key="governance_downgrade_overconfidence",
+                )
+
+            with right:
+                st.selectbox(
+                    "Human-review threshold",
+                    [
+                        "Critical issues only",
+                        "High-risk or unsupported claims",
+                        "Any material revision",
+                    ],
+                    key="governance_human_review_threshold",
+                )
+
+                st.multiselect(
+                    "Required escalation categories",
+                    [
+                        "PMM",
+                        "Product",
+                        "Research",
+                        "Legal",
+                        "Trust & Safety",
+                        "Privacy",
+                        "Brand",
+                    ],
+                    key="governance_escalation_categories",
+                )
+
+            governance_saved = st.form_submit_button(
+                "Save Governance Configuration",
+                type="primary",
+                use_container_width=True,
+            )
+
+        if governance_saved:
+            st.session_state.governance_review = None
+            st.success(
+                "Governance configuration saved. "
+                "Run a new governance review to apply it."
+            )
+
+    with runtime_tab:
+        st.markdown("### Aggregate First, Reason Second")
+
+        st.warning(
+            "This tab describes the intended production architecture. "
+            "The current MVP still sends a small, bounded evidence packet "
+            "directly to Gemini; large-scale bucketing and RAG are not yet "
+            "implemented."
+        )
+
+        st.markdown(
+            """
+            At production scale, the platform should not make one expensive
+            LLM call for every review. High-volume records are first cleaned,
+            classified, and aggregated into evidence buckets. Retrieval then
+            selects the relevant buckets and representative records for
+            strategic LLM reasoning.
+            """
+        )
+
+        with st.form("runtime_policy_form"):
+            st.selectbox(
+                "Initial classification policy",
+                [
+                    "Rules + lightweight ML",
+                    "Lightweight ML only",
+                    "LLM-first — not recommended at scale",
+                ],
+                key="runtime_preprocessing_policy",
+            )
+
+            st.multiselect(
+                "Evidence-bucket dimensions",
+                [
+                    "Sentiment",
+                    "Topic",
+                    "Segment",
+                    "Region",
+                    "Product version",
+                    "Recency",
+                    "Severity",
+                    "Journey stage",
+                ],
+                key="runtime_bucket_dimensions",
+            )
+
+            st.selectbox(
+                "Production retrieval architecture",
+                [
+                    (
+                        "RAG over evidence buckets and "
+                        "representative records"
+                    ),
+                    "Direct bounded context — current MVP",
+                ],
+                key="runtime_retrieval_policy",
+            )
+
+            st.selectbox(
+                "Model-routing policy",
+                [
+                    (
+                        "Low-cost tagging models; "
+                        "reasoning model for synthesis"
+                    ),
+                    "Single model for every task",
+                ],
+                key="runtime_model_routing",
+            )
+
+            st.selectbox(
+                "Optimization priority",
+                [
+                    "Balanced quality, latency, and cost",
+                    "Maximum quality",
+                    "Lowest latency",
+                    "Lowest inference cost",
+                ],
+                key="runtime_optimization_priority",
+            )
+
+            runtime_saved = st.form_submit_button(
+                "Save Intended Runtime Policy",
+                use_container_width=True,
+            )
+
+        if runtime_saved:
+            st.success("Intended production runtime policy saved.")
+
+        st.markdown("### Production non-functional requirements")
+
+        nfr_1, nfr_2, nfr_3 = st.columns(3)
+
+        with nfr_1:
+            with st.container(border=True):
+                st.markdown("#### Performance")
+                st.write(
+                    "Incremental processing, bounded context, caching, "
+                    "asynchronous jobs, and measurable latency targets."
+                )
+
+        with nfr_2:
+            with st.container(border=True):
+                st.markdown("#### Cost")
+                st.write(
+                    "Use lightweight classification before reserving "
+                    "reasoning models for aggregated strategic synthesis."
+                )
+
+        with nfr_3:
+            with st.container(border=True):
+                st.markdown("#### Scalability")
+                st.write(
+                    "Bucket hundreds of thousands of records and retrieve "
+                    "only decision-relevant evidence."
+                )
 
 
 def render_evidence() -> None:

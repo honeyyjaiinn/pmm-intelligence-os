@@ -218,6 +218,7 @@ def generate_intelligence_report(
     product_name: str,
     launch_goal: str,
     target_market: str,
+    configuration: dict[str, object] | None = None,
 ) -> IntelligenceReport:
     """
     Generate a structured, evidence-backed PMM intelligence report.
@@ -236,6 +237,149 @@ def generate_intelligence_report(
 
     evidence_packet = build_evidence_packet(frame)
 
+    # PMM_CONTROLLED_INTELLIGENCE_CONFIG_V1
+    configuration = configuration or {}
+
+    analysis_objective = str(
+        configuration.get(
+            "analysis_objective",
+            "Launch adoption and readiness",
+        )
+    )
+
+    output_depth = str(
+        configuration.get(
+            "output_depth",
+            "Balanced",
+        )
+    )
+
+    maximum_insights = max(
+        2,
+        min(
+            6,
+            int(
+                configuration.get(
+                    "maximum_insights",
+                    4,
+                )
+            ),
+        ),
+    )
+
+    minimum_evidence_records = max(
+        1,
+        int(
+            configuration.get(
+                "minimum_evidence_records",
+                2,
+            )
+        ),
+    )
+
+    segment_focus = str(
+        configuration.get(
+            "segment_focus",
+            "All evidence-supported segments",
+        )
+    )
+
+    confidence_policy = str(
+        configuration.get(
+            "confidence_policy",
+            "Conservative",
+        )
+    )
+
+    require_counter_evidence = bool(
+        configuration.get(
+            "require_counter_evidence",
+            True,
+        )
+    )
+
+    require_guardrails = bool(
+        configuration.get(
+            "require_guardrails",
+            True,
+        )
+    )
+
+    depth_guidance = {
+        "Executive": (
+            "Keep the report concise and prioritize only the "
+            "highest-value decision points."
+        ),
+        "Balanced": (
+            "Provide enough detail to understand the evidence, "
+            "PMM implication, recommendation, and next action."
+        ),
+        "Deep dive": (
+            "Provide detailed cross-source reasoning, segment nuance, "
+            "limitations, and research implications."
+        ),
+    }.get(
+        output_depth,
+        "Provide balanced, decision-oriented detail.",
+    )
+
+    confidence_guidance = {
+        "Conservative": (
+            "Use high confidence only when evidence is direct, "
+            "consistent, and supported by multiple records or sources."
+        ),
+        "Balanced": (
+            "Balance evidence consistency, diversity, relevance, "
+            "and uncertainty."
+        ),
+        "Exploratory": (
+            "You may surface hypotheses, but clearly label them as "
+            "hypotheses rather than established findings."
+        ),
+    }.get(
+        confidence_policy,
+        "Use qualitative confidence grounded in the evidence.",
+    )
+
+    counter_evidence_instruction = (
+        "Every insight must explicitly identify counter-evidence, "
+        "uncertainty, or evidence limitations."
+        if require_counter_evidence
+        else
+        "Include counter-evidence when it materially affects the "
+        "recommendation."
+    )
+
+    guardrail_instruction = (
+        "Every recommendation must include a practical guardrail."
+        if require_guardrails
+        else
+        "Include guardrails whenever trust, risk, claims, or customer "
+        "impact requires them."
+    )
+
+    configuration_block = f"""
+Analysis objective: {analysis_objective}
+Output depth: {output_depth}
+Maximum strategic insights: {maximum_insights}
+Minimum supporting evidence records per insight:
+{minimum_evidence_records}
+Segment focus: {segment_focus}
+Confidence policy: {confidence_policy}
+
+Depth guidance:
+{depth_guidance}
+
+Confidence guidance:
+{confidence_guidance}
+
+Counter-evidence policy:
+{counter_evidence_instruction}
+
+Guardrail policy:
+{guardrail_instruction}
+""".strip()
+
     prompt = f"""
 {SYSTEM_INSTRUCTIONS}
 
@@ -250,6 +394,9 @@ Launch goal:
 Target market:
 {target_market}
 
+ACTIVE CUSTOMER INTELLIGENCE CONFIGURATION
+{configuration_block}
+
 NORMALIZED EVIDENCE
 
 {evidence_packet}
@@ -260,7 +407,9 @@ Produce a structured Customer Intelligence report.
 
 The report must:
 
-- contain three to five strategic insights;
+- contain no more than {maximum_insights} strategic insights;
+- cite at least {minimum_evidence_records} distinct supporting ROW IDs
+  for every insight;
 - cite valid ROW IDs for every insight;
 - explain what the evidence means for Product Marketing;
 - distinguish customer evidence from past launch knowledge;
@@ -303,5 +452,20 @@ The report must:
                 "Gemini returned invalid evidence row IDs: "
                 f"{invalid_ids}"
             )
+
+    qualified_insights = [
+        insight
+        for insight in report.insights
+        if len(set(insight.evidence_row_ids))
+        >= minimum_evidence_records
+    ]
+
+    report.insights = qualified_insights[:maximum_insights]
+
+    if not report.insights:
+        raise RuntimeError(
+            "No generated insights met the configured minimum "
+            f"evidence threshold of {minimum_evidence_records}."
+        )
 
     return report

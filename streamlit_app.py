@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from src.multipage import (
     initialize_state,
+    render_agent_configuration,
     render_customer_intelligence,
     render_evidence,
     render_governance,
@@ -103,6 +104,13 @@ pages = {
             icon=":material/manage_search:",
         ),
     ],
+    "CONTROL PLANE": [
+        st.Page(
+            render_agent_configuration,
+            title="Agent Configuration",
+            icon=":material/tune:",
+        ),
+    ],
 }
 
 current_page = st.navigation(pages)
@@ -125,40 +133,7 @@ with st.sidebar:
         key="target_market",
     )
 
-    st.divider()
-    st.markdown("### Workflow status")
 
-    frame = st.session_state.evidence_frame
-
-    evidence_ready = (
-        frame is not None
-        and not frame.empty
-    )
-
-    intelligence_ready = (
-        st.session_state.gemini_report
-        is not None
-    )
-
-    governance_ready = (
-        st.session_state.governance_review
-        is not None
-    )
-
-    st.caption(
-        f"{'✅' if evidence_ready else '○'} "
-        "Evidence prepared"
-    )
-
-    st.caption(
-        f"{'✅' if intelligence_ready else '○'} "
-        "Intelligence generated"
-    )
-
-    st.caption(
-        f"{'✅' if governance_ready else '○'} "
-        "Governance completed"
-    )
 
 
 current_page.run()
