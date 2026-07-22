@@ -828,6 +828,177 @@ def _decision_recommendation(review: GovernanceReview) -> tuple[str, str, str]:
     )
 
 
+def _decision_brief_filename(launch: dict[str, Any]) -> str:
+    launch_name = str(launch.get("display_name", "launch"))
+    slug = re.sub(r"[^a-z0-9]+", "-", launch_name.lower()).strip("-")
+    return f"{slug or 'launch'}-pmm-decision-brief.html"
+
+
+def _build_decision_brief_html() -> str:
+    launch = get_active_launch()
+    report = st.session_state.gemini_report
+    review = st.session_state.governance_review
+    frame = st.session_state.evidence_frame
+    run = st.session_state.run_history[0] if st.session_state.run_history else {}
+
+    if report is None or review is None:
+        return ""
+
+    recommendation, explanation, state = _decision_recommendation(review)
+    analyzed_frame = _frame_with_analysis(frame)
+    profiles = _build_segment_profiles(analyzed_frame)
+
+    def list_html(items: list[str], empty_text: str) -> str:
+        cleaned = [str(item).strip() for item in items if str(item).strip()]
+        if not cleaned:
+            cleaned = [empty_text]
+        return "".join(f"<li>{html.escape(item)}</li>" for item in cleaned)
+
+    insight_blocks = []
+    for index, insight in enumerate(report.insights, start=1):
+        insight_blocks.append(
+            '<section class="insight">'
+            f'<div class="eyebrow">Insight {index} · {html.escape(insight.confidence_level.title())} confidence</div>'
+            f'<h3>{html.escape(insight.title)}</h3>'
+            f'<p><strong>Customer problem:</strong> {html.escape(insight.customer_problem)}</p>'
+            f'<p><strong>PMM implication:</strong> {html.escape(insight.pmm_implication)}</p>'
+            f'<p><strong>Recommendation:</strong> {html.escape(insight.recommendation)}</p>'
+            f'<p><strong>Next action:</strong> {html.escape(insight.next_action)}</p>'
+            f'<p><strong>Guardrail:</strong> {html.escape(insight.guardrail)}</p>'
+            f'<p><strong>Evidence:</strong> {html.escape(insight.evidence_summary)}</p>'
+            f'<p><strong>Uncertainty:</strong> {html.escape(insight.counter_evidence_or_uncertainty)}</p>'
+            '</section>'
+        )
+
+    segment_rows = []
+    if not profiles.empty:
+        for row in profiles.itertuples(index=False):
+            segment_rows.append(
+                "<tr>"
+                f"<td>{html.escape(str(row.segment))}</td>"
+                f"<td>{int(row.evidence)}</td>"
+                f"<td>{int(row.positive_share)}%</td>"
+                f"<td>{int(row.negative_share)}%</td>"
+                f"<td>{html.escape(str(row.top_theme))}</td>"
+                f"<td>{html.escape(str(row.pmm_need))}</td>"
+                "</tr>"
+            )
+    else:
+        segment_rows.append('<tr><td colspan="6">No segment evidence was available.</td></tr>')
+
+    source_rows = []
+    if frame is not None and not frame.empty:
+        for source, count in frame["source"].value_counts().items():
+            source_rows.append(
+                "<tr>"
+                f"<td>{html.escape(str(source))}</td>"
+                f"<td>{int(count)}</td>"
+                "</tr>"
+            )
+    else:
+        source_rows.append('<tr><td colspan="2">No source records were available.</td></tr>')
+
+    human_review_items = [str(item) for item in review.required_human_escalations]
+    governance_risks = [str(item) for item in review.cross_cutting_risks]
+    expected_outcomes = [str(item) for item in launch.get("expected_outcomes", [])]
+    success_metrics = [str(item) for item in launch.get("success_metrics", [])]
+
+    generated_at = str(
+        run.get("timestamp")
+        or datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    )
+    record_count = int(len(frame)) if frame is not None else 0
+    source_count = (
+        int(frame["source"].nunique())
+        if frame is not None and not frame.empty
+        else 0
+    )
+    state_color = {
+        "green": "#2E7D32",
+        "yellow": "#8A6500",
+        "red": "#B3261E",
+    }.get(state, "#3665F3")
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{html.escape(str(launch.get("display_name", "Launch")))} — PMM Decision Brief</title>
+<style>
+:root {{ --blue:#3665F3; --red:#E53238; --yellow:#F5AF02; --green:#86B817; --ink:#191919; --muted:#5C5C5C; --line:#D9D9D9; --soft:#F7F7F7; }}
+* {{ box-sizing:border-box; }}
+body {{ margin:0; font-family:Arial, Helvetica, sans-serif; color:var(--ink); background:#fff; line-height:1.5; }}
+main {{ max-width:960px; margin:0 auto; padding:44px 36px 64px; }}
+.brand {{ display:flex; align-items:center; gap:10px; font-weight:700; margin-bottom:28px; }}
+.brand-dots span {{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:3px; }}
+.eyebrow {{ text-transform:uppercase; letter-spacing:.08em; font-size:12px; font-weight:700; color:var(--muted); }}
+h1 {{ font-size:36px; line-height:1.12; margin:8px 0 10px; }}
+h2 {{ margin:34px 0 14px; padding-top:8px; border-top:1px solid var(--line); font-size:24px; }}
+h3 {{ margin:6px 0 10px; font-size:18px; }}
+p {{ margin:7px 0; }}
+ul {{ margin:8px 0 0; padding-left:20px; }}
+.decision {{ border:2px solid {state_color}; border-radius:18px; padding:24px; margin:24px 0; background:#fff; }}
+.decision-label {{ color:{state_color}; font-size:30px; font-weight:800; margin:4px 0; }}
+.grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }}
+.card, .insight {{ border:1px solid var(--line); border-radius:14px; padding:18px; break-inside:avoid; }}
+.meta {{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:20px 0; }}
+.meta .card strong {{ display:block; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }}
+table {{ width:100%; border-collapse:collapse; font-size:13px; }}
+th, td {{ border-bottom:1px solid var(--line); padding:10px 8px; text-align:left; vertical-align:top; }}
+th {{ background:var(--soft); }}
+.notice {{ background:#FFF8E1; border-left:5px solid var(--yellow); padding:14px 16px; margin:24px 0; }}
+.footer {{ color:var(--muted); font-size:12px; margin-top:32px; }}
+@media print {{ main {{ max-width:none; padding:18mm; }} .decision, .card, .insight {{ break-inside:avoid; }} }}
+@media (max-width:700px) {{ .grid, .meta {{ grid-template-columns:1fr; }} main {{ padding:28px 18px; }} h1 {{ font-size:29px; }} }}
+</style>
+</head>
+<body>
+<main>
+<div class="brand"><span class="brand-dots"><span style="background:#E53238"></span><span style="background:#3665F3"></span><span style="background:#F5AF02"></span><span style="background:#86B817"></span></span>PMM Co-Pilot</div>
+<div class="eyebrow">PMM Decision Brief · Generated {html.escape(generated_at)}</div>
+<h1>{html.escape(str(launch.get("display_name", "Launch")))}</h1>
+<p>{html.escape(str(launch.get("tagline", "")))}</p>
+<div class="meta">
+<div class="card"><strong>Market</strong>{html.escape(str(launch.get("target_markets", "Not specified")))}</div>
+<div class="card"><strong>Launch date</strong>{html.escape(str(launch.get("launch_date", "Not specified")))}</div>
+<div class="card"><strong>Evidence</strong>{record_count} records · {source_count} sources</div>
+<div class="card"><strong>Prompt versions</strong>{html.escape(str(run.get("prompt_versions", "Intelligence v1.2 · Governance v1.1")))}</div>
+</div>
+<div class="decision">
+<div class="eyebrow">Recommended PMM decision</div>
+<div class="decision-label">{html.escape(recommendation)}</div>
+<p>{html.escape(explanation)}</p>
+</div>
+<div class="notice"><strong>Evidence notice:</strong> This portfolio demonstration uses synthetic customer feedback inspired by public themes. Findings are directional and do not represent all eBay customers.</div>
+<h2>Launch context</h2>
+<div class="grid">
+<div class="card"><h3>Why this launch</h3><p>{html.escape(str(launch.get("why_launch", "Not provided")))}</p></div>
+<div class="card"><h3>Launch goal</h3><p>{html.escape(str(launch.get("launch_goal", "Not provided")))}</p></div>
+<div class="card"><h3>Expected outcomes</h3><ul>{list_html(expected_outcomes, "No expected outcomes configured.")}</ul></div>
+<div class="card"><h3>Success measures</h3><ul>{list_html(success_metrics, "No success measures configured.")}</ul></div>
+</div>
+<h2>Executive intelligence</h2>
+<div class="card"><p>{html.escape(report.executive_summary)}</p></div>
+<h2>Strategic findings and actions</h2>
+{''.join(insight_blocks)}
+<h2>User segmentation layer</h2>
+<p>Directional segments derived from the current evidence. They are not statistically validated market segments.</p>
+<table><thead><tr><th>Segment</th><th>Evidence</th><th>Positive</th><th>Negative</th><th>Main theme</th><th>PMM need</th></tr></thead><tbody>{''.join(segment_rows)}</tbody></table>
+<h2>Governance and human review</h2>
+<div class="grid">
+<div class="card"><h3>Cross-cutting risks</h3><ul>{list_html(governance_risks, "No cross-cutting risks were returned.")}</ul></div>
+<div class="card"><h3>Required escalations</h3><ul>{list_html(human_review_items, "No mandatory human escalation was identified.")}</ul></div>
+</div>
+<div class="card" style="margin-top:14px"><h3>Audit summary</h3><p>{html.escape(review.audit_summary)}</p></div>
+<h2>Evidence source mix</h2>
+<table><thead><tr><th>Source</th><th>Records</th></tr></thead><tbody>{''.join(source_rows)}</tbody></table>
+<div class="footer">Independent portfolio prototype — not an official eBay product. Open this file in a browser and use Print → Save as PDF to create a PDF copy.</div>
+</main>
+</body>
+</html>"""
+
+
 def _render_pmm_decision_summary() -> None:
     report = st.session_state.gemini_report
     review = st.session_state.governance_review
@@ -895,6 +1066,22 @@ def _render_pmm_decision_summary() -> None:
         '<div class="decision-caveat">Within this demonstration evidence set, sentiment and recommendations are directional. They do not represent all eBay customers.</div>'
         '</div>',
         unsafe_allow_html=True,
+    )
+
+    decision_brief = _build_decision_brief_html()
+    st.download_button(
+        "↓ Download PMM Decision Brief",
+        data=decision_brief.encode("utf-8"),
+        file_name=_decision_brief_filename(get_active_launch()),
+        mime="text/html",
+        key="download_pmm_decision_brief",
+        help=(
+            "Downloads a print-ready decision brief. Open it in a browser and use "
+            "Print → Save as PDF when a PDF copy is needed."
+        ),
+    )
+    st.caption(
+        "The downloaded brief is print-ready HTML and includes launch context, findings, segments, actions, governance, evidence sources, and the synthetic-data disclaimer."
     )
 
 
@@ -1314,21 +1501,38 @@ def render_new_launch_form() -> None:
 def _style_figure(fig, *, height: int = 340) -> None:
     fig.update_layout(
         height=height,
-        margin=dict(l=10, r=10, t=45, b=10),
+        margin=dict(l=12, r=18, t=52, b=46),
         paper_bgcolor="#FFFFFF",
         plot_bgcolor="#FFFFFF",
         font=dict(color="#333333", size=12),
         title_font=dict(size=16, color="#191919"),
         legend_title_text="",
-        hoverlabel=dict(bgcolor="#FFFFFF"),
+        hovermode="closest",
+        hoverlabel=dict(
+            bgcolor="#FFFFFF",
+            bordercolor="#D9D9D9",
+            font=dict(color="#191919", size=12),
+            align="left",
+            namelength=-1,
+        ),
     )
+
 
 
 def _render_sentiment_chart(frame: pd.DataFrame) -> None:
     counts = (
-        frame["sentiment"].value_counts().reindex(["Positive", "Neutral", "Negative"], fill_value=0)
+        frame["sentiment"]
+        .value_counts()
+        .reindex(["Positive", "Neutral", "Negative"], fill_value=0)
     )
     chart = counts.rename_axis("sentiment").reset_index(name="signals")
+    meanings = {
+        "Positive": "Shows value or satisfaction.<br>Directional, not market-wide.",
+        "Neutral": "Mixed or informational feedback.<br>No clear positive or negative view.",
+        "Negative": "Shows friction or concern.<br>May need PMM action.",
+    }
+    chart["meaning"] = chart["sentiment"].map(meanings)
+
     fig = px.pie(
         chart,
         names="sentiment",
@@ -1337,14 +1541,35 @@ def _render_sentiment_chart(frame: pd.DataFrame) -> None:
         title="Customer sentiment",
         color="sentiment",
         color_discrete_map=SENTIMENT_COLORS,
+        custom_data=["meaning"],
     )
-    fig.update_traces(textposition="inside", textinfo="percent+label")
-    _style_figure(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    fig.update_traces(
+        textposition="inside",
+        textinfo="percent+label",
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "%{value} evidence records · %{percent}<br>"
+            "%{customdata[0]}"
+            "<extra></extra>"
+        ),
+    )
+    _style_figure(fig, height=360)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
+
+
 
 
 def _render_theme_chart(summary: pd.DataFrame) -> None:
-    chart = summary.head(7).sort_values("mentions")
+    chart = summary.head(7).sort_values("mentions").copy()
+    chart["meaning"] = (
+        "More mentions = more evidence in this dataset.<br>"
+        "It does not prove total market size."
+    )
+
     fig = px.bar(
         chart,
         x="mentions",
@@ -1354,15 +1579,36 @@ def _render_theme_chart(summary: pd.DataFrame) -> None:
         labels={"mentions": "Evidence records", "theme": ""},
         color="confidence",
         color_continuous_scale=["#DDE6FF", EBAY_COLORS["blue"]],
+        custom_data=["confidence", "meaning"],
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "%{x} supporting records<br>"
+            "Confidence: %{customdata[0]:.2f}<br>"
+            "%{customdata[1]}"
+            "<extra></extra>"
+        )
     )
     fig.update_coloraxes(showscale=False)
-    _style_figure(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    _style_figure(fig, height=360)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
+
+
 
 
 def _render_source_chart(frame: pd.DataFrame) -> None:
     chart = frame["source"].value_counts().reset_index()
     chart.columns = ["source", "signals"]
+    chart["meaning"] = (
+        "Shows each source's contribution.<br>"
+        "A dominant source can bias the findings."
+    )
+
     fig = px.bar(
         chart,
         x="source",
@@ -1378,24 +1624,55 @@ def _render_source_chart(frame: pd.DataFrame) -> None:
             "#8B5CF6",
             "#0EA5E9",
         ],
+        custom_data=["meaning"],
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            "%{y} evidence records<br>"
+            "%{customdata[0]}"
+            "<extra></extra>"
+        )
     )
     fig.update_layout(showlegend=False)
     fig.update_xaxes(tickangle=-18)
-    _style_figure(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    _style_figure(fig, height=380)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
+
+
 
 
 def _render_trend_chart(frame: pd.DataFrame) -> None:
     chart = frame.copy()
-    chart["created_at"] = pd.to_datetime(chart["created_at"], errors="coerce")
+    chart["created_at"] = pd.to_datetime(
+        chart["created_at"],
+        errors="coerce",
+    )
     chart = chart.dropna(subset=["created_at"])
+
     if chart.empty:
         st.info("No usable dates are available for the trend chart.")
         return
-    chart["month"] = chart["created_at"].dt.to_period("M").dt.to_timestamp()
-    chart = (
-        chart.groupby(["month", "sentiment"]).size().reset_index(name="signals")
+
+    chart["month"] = (
+        chart["created_at"]
+        .dt.to_period("M")
+        .dt.to_timestamp()
     )
+    chart = (
+        chart.groupby(["month", "sentiment"])
+        .size()
+        .reset_index(name="signals")
+    )
+    chart["meaning"] = (
+        "Shows available feedback by month.<br>"
+        "Collection timing may affect the pattern."
+    )
+
     fig = px.line(
         chart,
         x="month",
@@ -1405,19 +1682,58 @@ def _render_trend_chart(frame: pd.DataFrame) -> None:
         title="Feedback trend over time",
         labels={"month": "", "signals": "Signals", "sentiment": ""},
         color_discrete_map=SENTIMENT_COLORS,
+        custom_data=["meaning"],
     )
-    _style_figure(fig)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{fullData.name}</b><br>"
+            "%{x|%b %Y}<br>"
+            "%{y} evidence records<br>"
+            "%{customdata[0]}"
+            "<extra></extra>"
+        )
+    )
+    _style_figure(fig, height=360)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
+
+
 
 
 def _render_confidence_chart(report: IntelligenceReport) -> None:
-    counts = Counter(insight.confidence_level for insight in report.insights)
+    counts = Counter(
+        insight.confidence_level
+        for insight in report.insights
+    )
+    meanings = {
+        "high": (
+            "Strong, consistent evidence.<br>"
+            "Still not a statistical probability."
+        ),
+        "medium": (
+            "Useful, but evidence has gaps.<br>"
+            "Review before a major decision."
+        ),
+        "low": (
+            "Exploratory only.<br>"
+            "Collect more evidence first."
+        ),
+    }
     chart = pd.DataFrame(
         {
             "confidence": ["high", "medium", "low"],
-            "insights": [counts.get("high", 0), counts.get("medium", 0), counts.get("low", 0)],
+            "insights": [
+                counts.get("high", 0),
+                counts.get("medium", 0),
+                counts.get("low", 0),
+            ],
         }
     )
+    chart["meaning"] = chart["confidence"].map(meanings)
+
     fig = px.bar(
         chart,
         x="confidence",
@@ -1425,20 +1741,58 @@ def _render_confidence_chart(report: IntelligenceReport) -> None:
         title="Intelligence confidence",
         color="confidence",
         color_discrete_map=CONFIDENCE_COLORS,
+        custom_data=["meaning"],
+    )
+    fig.update_traces(
+        hovertemplate=(
+            "<b>%{x} confidence</b><br>"
+            "%{y} strategic insights<br>"
+            "%{customdata[0]}"
+            "<extra></extra>"
+        )
     )
     fig.update_layout(showlegend=False)
-    _style_figure(fig, height=310)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    _style_figure(fig, height=350)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
+
+
 
 
 def _render_governance_chart(review: GovernanceReview) -> None:
-    counts = Counter(item.verdict for item in review.insight_reviews)
+    counts = Counter(
+        item.verdict
+        for item in review.insight_reviews
+    )
+    meanings = {
+        "approve": (
+            "Evidence supports it.<br>"
+            "Normal PMM review is enough."
+        ),
+        "revise": (
+            "Useful direction.<br>"
+            "Change wording, evidence, or action."
+        ),
+        "reject": (
+            "Unsupported or too risky.<br>"
+            "Do not use as written."
+        ),
+    }
     chart = pd.DataFrame(
         {
             "verdict": ["approve", "revise", "reject"],
-            "insights": [counts.get("approve", 0), counts.get("revise", 0), counts.get("reject", 0)],
+            "insights": [
+                counts.get("approve", 0),
+                counts.get("revise", 0),
+                counts.get("reject", 0),
+            ],
         }
     )
+    chart["meaning"] = chart["verdict"].map(meanings)
+
     fig = px.pie(
         chart,
         names="verdict",
@@ -1447,10 +1801,25 @@ def _render_governance_chart(review: GovernanceReview) -> None:
         title="Governance outcomes",
         color="verdict",
         color_discrete_map=VERDICT_COLORS,
+        custom_data=["meaning"],
     )
-    fig.update_traces(textinfo="value+label")
-    _style_figure(fig, height=310)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    fig.update_traces(
+        textinfo="value+label",
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "%{value} strategic insights<br>"
+            "%{customdata[0]}"
+            "<extra></extra>"
+        ),
+    )
+    _style_figure(fig, height=350)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False},
+    )
+
+
 
 
 def _render_launch_meta(launch: dict[str, Any]) -> None:
@@ -1659,25 +2028,54 @@ def _render_segmentation_layer(frame: pd.DataFrame) -> None:
         unsafe_allow_html=True,
     )
     st.caption(
-        "Evidence-derived, directional segments for PMM planning. These are not statistically validated market segments."
+        "Evidence-derived, directional segments for PMM planning. "
+        "These are not statistically validated market segments. "
+        "Hover over a bar for a short explanation."
     )
 
     if profiles.empty:
-        st.info("No customer segment information is available in the selected evidence.")
+        st.info(
+            "No customer segment information is available "
+            "in the selected evidence."
+        )
         return
 
     chart_column, profile_column = st.columns([1, 1.55])
+
     with chart_column:
+        chart = profiles.sort_values("evidence").copy()
+        chart["meaning"] = (
+            "More records = stronger support here.<br>"
+            "It is not a population estimate."
+        )
+
         fig = px.bar(
-            profiles.sort_values("evidence"),
+            chart,
             x="evidence",
             y="segment",
             orientation="h",
             title="Evidence by user segment",
             labels={"evidence": "Evidence records", "segment": ""},
+            custom_data=[
+                "positive_share",
+                "negative_share",
+                "top_theme",
+                "meaning",
+            ],
         )
-        fig.update_traces(marker_color=EBAY_COLORS["blue"])
-        _style_figure(fig, height=360)
+        fig.update_traces(
+            marker_color=EBAY_COLORS["blue"],
+            hovertemplate=(
+                "<b>%{y}</b><br>"
+                "%{x} evidence records<br>"
+                "%{customdata[0]}% positive · "
+                "%{customdata[1]}% negative<br>"
+                "Main theme: %{customdata[2]}<br>"
+                "%{customdata[3]}"
+                "<extra></extra>"
+            ),
+        )
+        _style_figure(fig, height=380)
         st.plotly_chart(
             fig,
             use_container_width=True,
@@ -1687,11 +2085,18 @@ def _render_segmentation_layer(frame: pd.DataFrame) -> None:
     with profile_column:
         cards = "".join(
             '<div class="segment-card">'
-            f'<div class="segment-card-title">{html.escape(str(row.segment))}</div>'
-            f'<div class="segment-card-meta">{int(row.evidence)} evidence records · '
-            f'{int(row.positive_share)}% positive · {int(row.negative_share)}% negative</div>'
-            f'<div class="segment-card-theme"><strong>Main theme:</strong> {html.escape(str(row.top_theme))}</div>'
-            f'<div class="segment-card-need"><strong>PMM need:</strong> {html.escape(str(row.pmm_need))}</div>'
+            f'<div class="segment-card-title">'
+            f'{html.escape(str(row.segment))}</div>'
+            f'<div class="segment-card-meta">'
+            f'{int(row.evidence)} evidence records · '
+            f'{int(row.positive_share)}% positive · '
+            f'{int(row.negative_share)}% negative</div>'
+            f'<div class="segment-card-theme">'
+            f'<strong>Main theme:</strong> '
+            f'{html.escape(str(row.top_theme))}</div>'
+            f'<div class="segment-card-need">'
+            f'<strong>PMM need:</strong> '
+            f'{html.escape(str(row.pmm_need))}</div>'
             "</div>"
             for row in profiles.itertuples(index=False)
         )
@@ -1699,6 +2104,8 @@ def _render_segmentation_layer(frame: pd.DataFrame) -> None:
             f'<div class="segment-card-grid">{cards}</div>',
             unsafe_allow_html=True,
         )
+
+
 
 
 def render_overview_tab() -> None:
@@ -1746,7 +2153,7 @@ def render_overview_tab() -> None:
 
     st.markdown('<div class="section-title">Signal dashboard</div>', unsafe_allow_html=True)
     st.caption(
-        "Sentiment is directional. Sample customer records are synthetic and based on public discussion themes, not a representative research sample."
+        "Sentiment is directional. Sample customer records are synthetic and based on public discussion themes, not a representative research sample. Hover over any chart element for a plain-language explanation of what it means."
     )
     chart_left, chart_right = st.columns(2)
     with chart_left:
