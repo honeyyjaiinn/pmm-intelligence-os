@@ -208,6 +208,7 @@ def initialize_dashboard_state() -> None:
         "active_launch_id": "klarna-ebay-us",
         "launch_selector": "klarna-ebay-us",
         "show_new_launch_form": False,
+        "show_agent_configuration": False,
         "agent_mode": "Demo (cached)",
         "pipeline_requested": False,
         "pipeline_running": False,
@@ -306,6 +307,7 @@ def _activate_launch(launch_id: str) -> None:
         return
     st.session_state.active_launch_id = launch_id
     st.session_state.show_new_launch_form = False
+    st.session_state.show_agent_configuration = False
     _reset_pipeline_results()
     _refresh_evidence()
 
@@ -1341,6 +1343,30 @@ def render_sidebar() -> None:
         ):
             _reset_demo()
 
+        st.divider()
+        st.caption("ADVANCED")
+
+        if st.session_state.show_agent_configuration:
+            if st.button(
+                "← Back to dashboard",
+                key="close_agent_configuration",
+                use_container_width=True,
+            ):
+                st.session_state.show_agent_configuration = False
+                st.rerun()
+        else:
+            if st.button(
+                "⚙ Agent Configuration",
+                key="open_agent_configuration",
+                use_container_width=True,
+                help=(
+                    "Configure intelligence, governance, runtime policy, "
+                    "and Prompt Operations."
+                ),
+            ):
+                st.session_state.show_agent_configuration = True
+                st.rerun()
+
         if st.session_state.connector_errors:
             with st.expander("Connector notes"):
                 for error in st.session_state.connector_errors:
@@ -2228,7 +2254,7 @@ def render_signal_hub_tab() -> None:
     if st.session_state.use_airtable:
         with st.expander("Airtable connection", expanded=True):
             st.info(
-                "Store AIRTABLE_PAT in .env or Streamlit secrets. The token is never shown in the UI."
+                ""
             )
             left, right = st.columns(2)
             with left:
@@ -2639,19 +2665,27 @@ def render_agent_configuration_tab() -> None:
 def render_dashboard() -> None:
     launch = get_active_launch()
     render_pipeline_banner(st.session_state.pipeline_complete)
-    render_launch_header(launch["display_name"], launch["tagline"])
+    render_launch_header(
+        launch["display_name"],
+        launch["tagline"],
+    )
 
     if st.session_state.pipeline_error:
         st.error(st.session_state.pipeline_error)
 
-    overview, signals, intelligence, governance, evidence, configuration = st.tabs(
+    # Agent Configuration is a control-plane screen opened
+    # from the sidebar rather than a PMM workflow tab.
+    if st.session_state.show_agent_configuration:
+        render_agent_configuration_tab()
+        return
+
+    overview, signals, intelligence, governance, evidence = st.tabs(
         [
             "Overview",
             "Signal Hub",
             "Intelligence",
             "Governance",
             "Evidence & Audit",
-            "Agent Configuration",
         ]
     )
 
@@ -2665,5 +2699,4 @@ def render_dashboard() -> None:
         render_governance_tab()
     with evidence:
         render_evidence_tab()
-    with configuration:
-        render_agent_configuration_tab()
+
