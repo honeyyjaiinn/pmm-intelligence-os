@@ -694,6 +694,121 @@ hr {
         max-width: none;
     }
 }
+
+/* Compact sidebar so primary controls fit on a standard laptop screen. */
+[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+    padding-top: 1.15rem !important;
+    padding-bottom: 0.75rem !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 0.45rem !important;
+}
+
+[data-testid="stSidebar"] hr {
+    margin: 0.5rem 0 !important;
+}
+
+[data-testid="stSidebar"] .stButton > button {
+    min-height: 2.55rem !important;
+    padding: 0.42rem 0.8rem !important;
+}
+
+[data-testid="stSidebar"] .stSelectbox,
+[data-testid="stSidebar"] .stRadio,
+[data-testid="stSidebar"] .stCaptionContainer {
+    margin-bottom: 0.15rem !important;
+}
+
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p {
+    margin-bottom: 0.15rem !important;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] {
+    gap: 0.18rem !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+    line-height: 1.35 !important;
+}
+
+[data-testid="stSidebar"] .stCaptionContainer {
+    font-size: 0.78rem !important;
+    line-height: 1.3 !important;
+}
+
+@media (max-height: 850px) {
+    [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+        padding-top: 0.8rem !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        gap: 0.3rem !important;
+    }
+
+    [data-testid="stSidebar"] hr {
+        margin: 0.35rem 0 !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button {
+        min-height: 2.35rem !important;
+    }
+}
+
+
+/* Balanced sidebar spacing: compact, but not cramped. */
+[data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+    padding-top: 1.35rem !important;
+    padding-bottom: 1rem !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 0.72rem !important;
+}
+
+[data-testid="stSidebar"] hr {
+    margin: 0.8rem 0 !important;
+}
+
+[data-testid="stSidebar"] .stButton > button {
+    min-height: 2.7rem !important;
+    padding: 0.5rem 0.85rem !important;
+}
+
+[data-testid="stSidebar"] .stSelectbox,
+[data-testid="stSidebar"] .stRadio {
+    margin-bottom: 0.25rem !important;
+}
+
+[data-testid="stSidebar"] [role="radiogroup"] {
+    gap: 0.32rem !important;
+}
+
+[data-testid="stSidebar"] .stCaptionContainer {
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.25rem !important;
+    line-height: 1.4 !important;
+}
+
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+    line-height: 1.4 !important;
+}
+
+@media (max-height: 850px) {
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        gap: 0.58rem !important;
+    }
+
+    [data-testid="stSidebar"] hr {
+        margin: 0.65rem 0 !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button {
+        min-height: 2.55rem !important;
+    }
+}
+
 </style>
 """
 
