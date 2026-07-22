@@ -52,7 +52,177 @@ h1, h2, h3, .launch-header, .pipeline-banner {
     scroll-margin-top: 5.5rem;
 }
 
+.decision-summary-card {
+    border: 1px solid var(--line);
+    border-left: 7px solid var(--ebay-yellow);
+    border-radius: 17px;
+    background: #FFFFFF;
+    padding: 1.25rem 1.3rem;
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.04);
+}
+
+.decision-summary-card.green { border-left-color: var(--ebay-green); }
+.decision-summary-card.yellow { border-left-color: var(--ebay-yellow); }
+.decision-summary-card.red { border-left-color: var(--ebay-red); }
+
+.decision-summary-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #E6E6E6;
+}
+
+.decision-eyebrow {
+    color: #6F6F6F;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.decision-headline {
+    color: var(--ink);
+    font-size: 1.75rem;
+    font-weight: 850;
+    letter-spacing: -0.045em;
+    line-height: 1.1;
+}
+
+.decision-explanation {
+    color: #555555;
+    line-height: 1.45;
+    margin-top: 0.45rem;
+    max-width: 720px;
+}
+
+.evidence-badge {
+    background: #F4F6FA;
+    border: 1px solid #DEE3EC;
+    border-radius: 999px;
+    color: #525A67;
+    font-size: 0.72rem;
+    font-weight: 750;
+    line-height: 1.3;
+    padding: 0.45rem 0.72rem;
+    white-space: nowrap;
+}
+
+.decision-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    padding-top: 1rem;
+}
+
+.decision-column {
+    background: #FAFAFA;
+    border-radius: 12px;
+    padding: 0.85rem 0.9rem;
+}
+
+.decision-column h4 {
+    color: var(--ink);
+    font-size: 0.92rem;
+    margin: 0 0 0.45rem 0;
+}
+
+.decision-column ul {
+    margin: 0;
+    padding-left: 1.05rem;
+}
+
+.decision-column li {
+    color: #505050;
+    font-size: 0.81rem;
+    line-height: 1.45;
+    margin-bottom: 0.38rem;
+}
+
+.decision-caveat {
+    color: #6B6B6B;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    margin-top: 0.9rem;
+}
+
+.run-record-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #FFFFFF;
+    padding: 1.1rem 1.2rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.run-record-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.95rem;
+}
+
+.run-complete-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: #FFFFFF;
+    background: var(--ebay-green);
+    font-weight: 850;
+}
+
+.run-record-subtitle {
+    color: #6A6A6A;
+    font-size: 0.8rem;
+    margin-top: 0.15rem;
+}
+
+.run-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.run-detail-item {
+    background: #F7F7F7;
+    border-radius: 10px;
+    padding: 0.72rem 0.78rem;
+}
+
+.run-detail-label {
+    color: #777777;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.run-detail-value {
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
 @media (max-width: 900px) {
+    .decision-summary-top {
+        flex-direction: column;
+    }
+
+    .evidence-badge {
+        white-space: normal;
+    }
+
+    .decision-grid,
+    .run-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
     [data-testid="stAppViewContainer"] .block-container {
         padding-top: 4.25rem !important;
     }

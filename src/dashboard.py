@@ -797,12 +797,164 @@ def _demo_governance_review(report: IntelligenceReport) -> GovernanceReview:
     )
 
 
+# PMM_DECISION_SUMMARY_V1
+
+def _decision_recommendation(review: GovernanceReview) -> tuple[str, str, str]:
+    """Return a plain-language PMM decision, explanation, and CSS state."""
+    verdict = str(review.overall_verdict).strip().lower()
+    human_review_count = sum(
+        bool(item.human_review_required)
+        for item in review.insight_reviews
+    )
+
+    if "reject" in verdict:
+        return (
+            "Pause and resolve",
+            "Critical evidence or governance issues must be addressed before launch execution.",
+            "red",
+        )
+
+    if "revise" in verdict or human_review_count:
+        return (
+            "Proceed with guardrails",
+            "The opportunity is credible, but selected claims and actions need revision or human approval.",
+            "yellow",
+        )
+
+    return (
+        "Proceed",
+        "The available evidence supports controlled execution with normal PMM oversight.",
+        "green",
+    )
+
+
+def _render_pmm_decision_summary() -> None:
+    report = st.session_state.gemini_report
+    review = st.session_state.governance_review
+    frame = st.session_state.evidence_frame
+
+    if report is None or review is None:
+        return
+
+    recommendation, explanation, state = _decision_recommendation(review)
+    findings = list(report.insights[:3])
+    actions = [
+        insight.next_action
+        for insight in findings
+        if str(insight.next_action).strip()
+    ]
+    escalations = list(review.required_human_escalations[:3])
+
+    findings_html = "".join(
+        f"<li>{html.escape(insight.title)}</li>"
+        for insight in findings
+    ) or "<li>No strategic findings were returned.</li>"
+
+    actions_html = "".join(
+        f"<li>{html.escape(action)}</li>"
+        for action in actions
+    ) or "<li>Define the next PMM validation step.</li>"
+
+    escalations_html = "".join(
+        f"<li>{html.escape(escalation)}</li>"
+        for escalation in escalations
+    ) or "<li>No mandatory escalation was identified.</li>"
+
+    record_count = int(len(frame)) if frame is not None else 0
+    source_count = (
+        int(frame["source"].nunique())
+        if frame is not None and not frame.empty
+        else 0
+    )
+
+    st.markdown(
+        '<div class="section-title">PMM decision summary</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        f'<div class="decision-summary-card {state}">'
+        '<div class="decision-summary-top">'
+        '<div>'
+        '<div class="decision-eyebrow">Recommended PMM decision</div>'
+        f'<div class="decision-headline">{html.escape(recommendation)}</div>'
+        f'<div class="decision-explanation">{html.escape(explanation)}</div>'
+        '</div>'
+        f'<div class="evidence-badge">Demo dataset · Synthetic feedback · {record_count} records · {source_count} sources</div>'
+        '</div>'
+        '<div class="decision-grid">'
+        '<div class="decision-column"><h4>Top findings</h4><ul>'
+        f'{findings_html}'
+        '</ul></div>'
+        '<div class="decision-column"><h4>Next PMM actions</h4><ul>'
+        f'{actions_html}'
+        '</ul></div>'
+        '<div class="decision-column"><h4>Human review</h4><ul>'
+        f'{escalations_html}'
+        '</ul></div>'
+        '</div>'
+        '<div class="decision-caveat">Within this demonstration evidence set, sentiment and recommendations are directional. They do not represent all eBay customers.</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_latest_run_record() -> None:
+    if not st.session_state.run_history:
+        return
+
+    run = st.session_state.run_history[0]
+    duration = run.get("duration_seconds")
+    duration_text = f"{duration:.1f}s" if isinstance(duration, (int, float)) else "Not recorded"
+    human_reviews = int(run.get("human_reviews", 0))
+    human_text = (
+        f"{human_reviews} recommendation{'s' if human_reviews != 1 else ''}"
+        if human_reviews
+        else "None required"
+    )
+
+    items = [
+        ("Status", "5/5 stages complete"),
+        ("Last run", str(run.get("timestamp", "Not recorded"))),
+        ("Runtime", duration_text),
+        ("Mode / model", str(run.get("model", run.get("mode", "Not recorded")))),
+        ("Prompt versions", str(run.get("prompt_versions", "Intelligence v1.2 · Governance v1.1"))),
+        ("Human review", human_text),
+        ("Evidence", f"{int(run.get('signals', 0))} records"),
+        ("Final decision", str(run.get("decision", run.get("verdict", "Not recorded")))),
+    ]
+
+    items_html = "".join(
+        '<div class="run-detail-item">'
+        f'<div class="run-detail-label">{html.escape(label)}</div>'
+        f'<div class="run-detail-value">{html.escape(value)}</div>'
+        '</div>'
+        for label, value in items
+    )
+
+    st.markdown(
+        '<div class="section-title">Latest pipeline run</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '<div class="run-record-card">'
+        '<div class="run-record-header">'
+        '<span class="run-complete-dot">✓</span>'
+        '<div><strong>Pipeline completed successfully</strong>'
+        '<div class="run-record-subtitle">Evidence preparation, intelligence generation, and governance review finished in one run.</div></div>'
+        '</div>'
+        f'<div class="run-detail-grid">{items_html}</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Full one-click pipeline
 # ---------------------------------------------------------------------------
 
 
 def run_full_pipeline() -> None:
+    pipeline_started_at = time.perf_counter()
     st.session_state.pipeline_running = True
     st.session_state.pipeline_error = ""
 
@@ -868,6 +1020,21 @@ def run_full_pipeline() -> None:
             st.session_state.governance_review = review
 
             run_time = datetime.now().astimezone()
+            duration_seconds = round(
+                time.perf_counter() - pipeline_started_at,
+                2,
+            )
+            human_review_count = sum(
+                bool(item.human_review_required)
+                for item in review.insight_reviews
+            )
+            decision_label, _, _ = _decision_recommendation(review)
+            model_label = (
+                os.getenv("GEMINI_MODEL", "Gemini")
+                if st.session_state.agent_mode == "Live (Gemini API)"
+                else "Demo cache · no model call"
+            )
+
             st.session_state.last_run_at = run_time.isoformat()
             st.session_state.pipeline_complete = True
             st.session_state.run_history.insert(
@@ -876,8 +1043,13 @@ def run_full_pipeline() -> None:
                     "launch": launch["display_name"],
                     "timestamp": run_time.strftime("%Y-%m-%d %H:%M:%S %Z"),
                     "mode": st.session_state.agent_mode,
+                    "model": model_label,
+                    "duration_seconds": duration_seconds,
                     "signals": int(len(frame)),
                     "insights": int(len(report.insights)),
+                    "human_reviews": int(human_review_count),
+                    "prompt_versions": "Intelligence v1.2 · Governance v1.1",
+                    "decision": decision_label,
                     "verdict": review.overall_verdict,
                 },
             )
@@ -1538,6 +1710,10 @@ def render_overview_tab() -> None:
     _render_launch_meta(launch)
 
     _render_overview_metrics(frame)
+
+    if st.session_state.pipeline_complete:
+        _render_pmm_decision_summary()
+        _render_latest_run_record()
 
     st.markdown('<div class="section-title">Why this launch</div>', unsafe_allow_html=True)
     narrative, pipeline = st.columns([2.2, 1])
