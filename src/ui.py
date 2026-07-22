@@ -454,7 +454,7 @@ hr {
 
 
 /* ---------------------------------------------------------
-   WORKFLOW CARDS — SEMANTIC COLOR
+   WORKFLOW CARDS - SEMANTIC COLOR
 --------------------------------------------------------- */
 
 .workflow-card {
@@ -570,7 +570,7 @@ HERO = """
 <section class="pmm-hero">
 <div class="pmm-eyebrow">Product Marketing Decision Intelligence</div>
 <h1 class="pmm-title">PMM Intelligence OS</h1>
-<p class="pmm-subtitle">Transform fragmented customer, competitive, organizational, and product-risk signals into evidence-backed Product Marketing recommendations—with governance and human oversight built in.</p>
+<p class="pmm-subtitle">Transform fragmented customer, competitive, organizational, and product-risk signals into evidence-backed Product Marketing recommendations - with governance and human oversight built in.</p>
 <div class="pmm-badges">
 <span class="pmm-badge">Voice of Customer</span>
 <span class="pmm-badge">Competitive Intelligence</span>
@@ -596,7 +596,7 @@ def render_hero() -> None:
 def apply_ui() -> None:
     """Keep app_v4.py working.
 
-/* PRODUCT PRINCIPLE — SIGNAL TO DECISION */
+/* PRODUCT PRINCIPLE - SIGNAL TO DECISION */
 
 .principle-panel {
     margin: 1rem 0 2rem 0;

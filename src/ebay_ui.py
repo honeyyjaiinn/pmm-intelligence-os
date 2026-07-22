@@ -864,10 +864,10 @@ def render_launch_header(title: str, subtitle: str) -> None:
 
 def render_pipeline_banner(complete: bool) -> None:
     if complete:
-        text = "✓ Pipeline run complete — intelligence and governance results are ready"
+        text = "✓ Pipeline run complete - intelligence and governance results are ready"
         css_class = "success"
     else:
-        text = "Ready to run — one click collects signals, generates intelligence, and completes governance review"
+        text = "Ready to run - one click collects signals, generates intelligence, and completes governance review"
         css_class = "ready"
 
     st.markdown(

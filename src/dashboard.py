@@ -125,7 +125,7 @@ def _default_launches() -> dict[str, dict[str, Any]]:
         "ebay-vault": {
             "id": "ebay-vault",
             "name": "eBay Vault",
-            "display_name": "eBay Vault — Graded Card Storage",
+            "display_name": "eBay Vault - Graded Card Storage",
             "tagline": "Secure storage and streamlined resale for collectors",
             "category": "Collectibles · Trust · Fulfillment",
             "launch_date": "2025-02-10",
@@ -164,7 +164,7 @@ def _default_launches() -> dict[str, dict[str, Any]]:
         "ebay-certified-fitment": {
             "id": "ebay-certified-fitment",
             "name": "eBay Guaranteed Fit",
-            "display_name": "eBay Guaranteed Fit — Auto Parts",
+            "display_name": "eBay Guaranteed Fit - Auto Parts",
             "tagline": "More confidence that the part will fit the vehicle",
             "category": "Motors · Trust · Returns",
             "launch_date": "2025-01-15",
@@ -933,7 +933,7 @@ def _build_decision_brief_html() -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(str(launch.get("display_name", "Launch")))} — PMM Decision Brief</title>
+<title>{html.escape(str(launch.get("display_name", "Launch")))} - PMM Decision Brief</title>
 <style>
 :root {{ --blue:#3665F3; --red:#E53238; --yellow:#F5AF02; --green:#86B817; --ink:#191919; --muted:#5C5C5C; --line:#D9D9D9; --soft:#F7F7F7; }}
 * {{ box-sizing:border-box; }}
@@ -1002,7 +1002,7 @@ th {{ background:var(--soft); }}
 <div class="card" style="margin-top:14px"><h3>Audit summary</h3><p>{html.escape(review.audit_summary)}</p></div>
 <h2>Evidence source mix</h2>
 <table><thead><tr><th>Source</th><th>Records</th></tr></thead><tbody>{''.join(source_rows)}</tbody></table>
-<div class="footer">Independent portfolio prototype — not an official eBay product. Open this file in a browser and use Print → Save as PDF to create a PDF copy.</div>
+<div class="footer">Independent portfolio prototype - not an official eBay product. Open this file in a browser and use Print → Save as PDF to create a PDF copy.</div>
 </main>
 </body>
 </html>"""
@@ -1456,19 +1456,19 @@ def render_new_launch_form() -> None:
             placeholder="What customer, market, or business problem makes this launch necessary?",
         )
         expected_outcomes = st.text_area(
-            "Expected outcomes — one per line",
+            "Expected outcomes - one per line",
             placeholder="Increase qualified adoption\nReduce customer confusion\nImprove launch readiness",
         )
         success_metrics = st.text_area(
-            "Success metrics — one per line",
+            "Success metrics - one per line",
             placeholder="Activation rate\nConversion\nSupport contact rate\nCustomer sentiment",
         )
         brand_voice = st.text_area(
-            "Brand voice examples — one per line",
+            "Brand voice examples - one per line",
             placeholder="Built to make the complex feel simple.\nMore confidence at every step.",
         )
         seed_feedback = st.text_area(
-            "Seed customer feedback — one record per line",
+            "Seed customer feedback - one record per line",
             placeholder="Add sample buyer, seller, support, or research feedback here.",
             height=170,
         )
@@ -2388,7 +2388,7 @@ def render_governance_tab() -> None:
             with st.expander(f"Review issues · {item.insight_title}"):
                 for issue in item.issues:
                     st.write(
-                        f"**{issue.severity.title()} · {issue.category.replace('_', ' ').title()}** — {issue.explanation}"
+                        f"**{issue.severity.title()} · {issue.category.replace('_', ' ').title()}** - {issue.explanation}"
                     )
 
     left, right = st.columns(2)
@@ -2579,7 +2579,7 @@ def render_agent_configuration_tab() -> None:
                 [
                     "Rules + lightweight ML",
                     "Lightweight ML only",
-                    "LLM-first — not recommended at scale",
+                    "LLM-first - not recommended at scale",
                 ],
                 key="runtime_preprocessing_policy",
             )
@@ -2601,7 +2601,7 @@ def render_agent_configuration_tab() -> None:
                 "Retrieval architecture",
                 [
                     "RAG over evidence buckets and representative records",
-                    "Direct bounded context — current MVP",
+                    "Direct bounded context - current MVP",
                 ],
                 key="runtime_retrieval_policy",
             )

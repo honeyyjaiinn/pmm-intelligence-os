@@ -1250,7 +1250,7 @@ def render_agent_configuration() -> None:
                 [
                     "Rules + lightweight ML",
                     "Lightweight ML only",
-                    "LLM-first — not recommended at scale",
+                    "LLM-first - not recommended at scale",
                 ],
                 key="runtime_preprocessing_policy",
             )
@@ -1277,7 +1277,7 @@ def render_agent_configuration() -> None:
                         "RAG over evidence buckets and "
                         "representative records"
                     ),
-                    "Direct bounded context — current MVP",
+                    "Direct bounded context - current MVP",
                 ],
                 key="runtime_retrieval_policy",
             )
