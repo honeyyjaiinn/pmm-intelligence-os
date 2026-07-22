@@ -39,10 +39,23 @@ html, body, [class*="css"] {
     background: #FFFFFF;
 }
 
-.block-container {
+/* Keep page content below Streamlit Cloud's fixed toolbar. */
+[data-testid="stAppViewContainer"] .block-container {
     max-width: 1240px;
-    padding-top: 2.2rem;
+    padding-top: 4.75rem !important;
     padding-bottom: 4rem;
+}
+
+/* Give headings safe space when the browser keeps scroll position
+   while users move between dashboard tabs. */
+h1, h2, h3, .launch-header, .pipeline-banner {
+    scroll-margin-top: 5.5rem;
+}
+
+@media (max-width: 900px) {
+    [data-testid="stAppViewContainer"] .block-container {
+        padding-top: 4.25rem !important;
+    }
 }
 
 [data-testid="stSidebar"] {
