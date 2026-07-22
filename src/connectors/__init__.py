@@ -1,13 +1,11 @@
 from .base import Signal
 from .csv_connector import CSVConnector
 from .cpsc import CPSCRecallConnector
-from .reddit import RedditConnector
-from .news import NewsAPIConnector
+from .airtable import AirtableConnector
 
 __all__ = [
     "Signal",
     "CSVConnector",
     "CPSCRecallConnector",
-    "RedditConnector",
-    "NewsAPIConnector",
+    "AirtableConnector",
 ]

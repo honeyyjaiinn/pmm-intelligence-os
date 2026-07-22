@@ -1,36 +1,90 @@
 from __future__ import annotations
 
-from collections import defaultdict
 import math
+
 import pandas as pd
 
 
 THEMES = {
-    "Listing effort": [
-        "listing", "list items", "description", "title", "photos",
-        "bulk upload", "create listing", "time consuming"
+    "Payment flexibility": [
+        "pay in 4",
+        "installment",
+        "instalment",
+        "split",
+        "flexible",
+        "budget",
+        "manageable",
+        "higher ticket",
+        "high value",
+        "afford",
     ],
-    "Pricing uncertainty": [
-        "price", "pricing", "priced", "worth", "sold comps", "market value"
+    "Eligibility and checkout": [
+        "eligible",
+        "eligibility",
+        "checkout",
+        "unavailable",
+        "not available",
+        "disappeared",
+        "declined",
+        "delivery methods",
+        "shipping from outside",
+        "older version",
+        "category",
     ],
-    "Fees and profitability": [
-        "fee", "fees", "profit", "margin", "commission", "expensive"
+    "Cost transparency": [
+        "interest",
+        "rate",
+        "late fee",
+        "fees",
+        "total cost",
+        "financing",
+        "repayment",
+        "more expensive",
     ],
-    "Search and discovery": [
-        "search", "discover", "visibility", "views", "algorithm", "find items"
+    "Refunds and returns": [
+        "refund",
+        "return",
+        "returned",
+        "payment plan",
+        "remaining installments",
+        "cancel",
+        "adjusted",
     ],
-    "Trust and safety": [
-        "scam", "fraud", "trust", "authentic", "fake", "safety", "hazard",
-        "recall", "fire", "injury"
+    "Seller understanding": [
+        "seller",
+        "payout",
+        "ship immediately",
+        "wait until",
+        "default",
+        "after the order has shipped",
     ],
-    "Shipping and fulfillment": [
-        "shipping", "delivery", "label", "tracking", "package", "postage"
+    "Trust and financial wellbeing": [
+        "trust",
+        "control",
+        "affordability",
+        "spend beyond",
+        "credit",
+        "debt",
+        "late",
+        "payment fails",
     ],
-    "App reliability": [
-        "crash", "bug", "slow", "freeze", "login", "update", "broken"
+    "Experience simplicity": [
+        "easy",
+        "simple",
+        "smooth",
+        "clear",
+        "fast",
+        "redirect",
+        "manage",
+        "pre filled",
     ],
     "Customer support": [
-        "support", "customer service", "appeal", "response", "help"
+        "support",
+        "help",
+        "explain",
+        "response",
+        "handoff",
+        "switching between",
     ],
 }
 
@@ -42,8 +96,17 @@ def _match_theme(text: str, keywords: list[str]) -> int:
 def extract_theme_evidence(frame: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for idx, record in frame.iterrows():
+        text_clean = str(record.get("text_clean", ""))
+        metadata = record.get("metadata")
+        metadata_theme = ""
+        if isinstance(metadata, dict):
+            metadata_theme = str(metadata.get("theme", "")).strip()
+
         for theme, keywords in THEMES.items():
-            score = _match_theme(record["text_clean"], keywords)
+            score = _match_theme(text_clean, keywords)
+            if metadata_theme.lower() == theme.lower():
+                score += 2
+
             if score:
                 rows.append(
                     {
@@ -77,7 +140,7 @@ def summarize_themes(evidence: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
 
-    # Transparent heuristic—not a probability.
+    # Transparent directional heuristic, not a statistical probability.
     grouped["confidence"] = grouped.apply(
         lambda row: min(
             95,

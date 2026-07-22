@@ -1,5 +1,7 @@
-text,rating,created_at,segment
-Past seller campaign performed best when messaging focused on saving time rather than AI technology.,,2025-04-10,launch learning
-Claims about increasing seller revenue required legal review and supporting evidence.,,2025-04-11,guardrail
-Professional sellers responded strongly to workflow automation and bulk-management proof points.,,2025-04-12,launch learning
-First-time sellers needed education about pricing and shipping before they adopted advanced tools.,,2025-04-13,launch learning
+text,rating,created_at,segment,sentiment,theme,url,synthetic
+"The U.S. expansion positioned Klarna as a way to give buyers more choice, flexibility, and control at checkout.",,2025-04-23,organizational learning,positive,Payment flexibility,https://www.ebayinc.com/stories/news/ebay-and-klarna-deepen-global-strategic-partnership-to-empower-flexible-shopping-in-the-us/,false
+"The launch included Pay in 4 for interest-free installments and financing for larger eligible purchases.",,2025-04-23,organizational learning,neutral,Cost transparency,https://www.ebay.com/help/buying/paying-items/paying-klarna?id=5338,false
+"Early international usage was strongest in categories such as electronics, fashion, and collectibles, suggesting higher-ticket use cases deserve focused measurement.",,2025-04-23,organizational learning,positive,Payment flexibility,https://www.ebayinc.com/stories/news/ebay-and-klarna-deepen-global-strategic-partnership-to-empower-flexible-shopping-in-the-us/,false
+"Eligibility depends on order value, location, currency, shipping origin, delivery method, category, and app version, so checkout education is a core launch requirement.",,2025-04-23,organizational learning,neutral,Eligibility and checkout,https://www.ebay.com/help/buying/paying-items/paying-klarna?id=5338,false
+"Returns are handled through eBay while Klarna adjusts or refunds the payment plan, creating a need for joined-up support content.",,2025-04-23,organizational learning,neutral,Refunds and returns,https://www.ebay.com/help/buying/paying-items/paying-klarna?id=5338,false
+"The resell feature connects Klarna purchases with pre-filled eBay listings, reinforcing the partnership's circular-commerce story.",,2025-04-23,organizational learning,positive,Experience simplicity,https://www.ebayinc.com/stories/news/ebay-and-klarna-deepen-global-strategic-partnership-to-empower-flexible-shopping-in-the-us/,false

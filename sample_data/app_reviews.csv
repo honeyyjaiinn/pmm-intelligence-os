@@ -1,9 +1,17 @@
-text,rating,created_at,segment
-The app freezes when I try to create a listing with multiple photos.,2,2026-06-12,professional seller
-Writing titles and descriptions for every item takes forever.,2,2026-06-18,growth seller
-Search visibility feels random and my items get almost no views.,2,2026-06-23,professional seller
-"I love how easy shipping labels are, but bulk listing still needs work.",4,2026-06-29,professional seller
-The latest update keeps logging me out while I am listing products.,1,2026-07-02,occasional seller
-I need better sold comps so I know how to price vintage electronics.,3,2026-07-05,collector seller
-Fees make it hard to understand whether a sale is actually profitable.,2,2026-07-07,growth seller
-The listing flow is good for one item but painful for a large inventory.,3,2026-07-09,professional seller
+text,rating,created_at,segment,sentiment,theme,synthetic
+"Splitting a refurbished laptop into four payments made the purchase much easier to budget for.",5,2025-05-04,value-focused buyer,positive,Payment flexibility,true
+"Klarna appeared on the item page but disappeared when I reached checkout, so I had to use another payment method.",2,2025-05-11,occasional buyer,negative,Eligibility and checkout,true
+"The payment schedule was clear in the Klarna app and the eBay order went through without any trouble.",5,2025-05-18,mobile buyer,positive,Experience simplicity,true
+"I was not sure whether the seller would ship immediately or wait until all four payments were complete.",3,2025-05-24,first-time BNPL buyer,neutral,Seller understanding,true
+"Pay in 4 worked smoothly on a collectible I had been saving for.",4,2025-06-02,collector,positive,Payment flexibility,true
+"My purchase was declined and I did not understand whether the issue was the item, my account, or Klarna eligibility.",2,2025-06-14,occasional buyer,negative,Eligibility and checkout,true
+"My return was approved, but I was confused about when the remaining installments would be adjusted.",2,2025-06-28,returning buyer,negative,Refunds and returns,true
+"The monthly financing rate made the item far more expensive than the price I first saw.",2,2025-07-09,high-ticket buyer,negative,Cost transparency,true
+"I liked having another way to pay at checkout without using my credit card for the full amount.",4,2025-07-21,value-focused buyer,positive,Payment flexibility,true
+"Klarna was not available when my cart included items with different delivery methods.",3,2025-08-05,multi-item buyer,neutral,Eligibility and checkout,true
+"The redirect to Klarna and back to eBay was fast, and I could see every payment date before confirming.",5,2025-08-19,mobile buyer,positive,Experience simplicity,true
+"I almost selected financing before noticing the interest rate, so the total cost should be more visible earlier.",3,2025-09-03,high-ticket buyer,neutral,Cost transparency,true
+"The option was unavailable because the item shipped from outside the United States, but that rule was not obvious to me.",2,2025-09-17,cross-border buyer,negative,Eligibility and checkout,true
+"Being able to spread the cost helped me choose a certified refurbished phone instead of a cheaper unknown option.",5,2025-10-02,refurbished electronics buyer,positive,Payment flexibility,true
+"I would use it again, but I want a clearer explanation of late fees and what happens if a payment fails.",4,2025-10-20,repeat BNPL buyer,positive,Trust and financial wellbeing,true
+"The payment plan was easy, but getting help required switching between eBay and Klarna support.",3,2025-11-08,returning buyer,neutral,Customer support,true

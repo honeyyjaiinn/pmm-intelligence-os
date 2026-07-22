@@ -1,56 +1,61 @@
-# PMM Intelligence OS — MVP v0.1
+# PMM Co-Pilot — PMM Intelligence OS
 
-An interview-ready prototype for a Product Marketing Capabilities team.
+An independent portfolio prototype that turns multi-source launch evidence into evidence-backed Product Marketing recommendations, then audits those recommendations through a separate Governance Reviewer.
 
-## What it does
+## What changed in this redesign
 
-The app combines external and simulated internal signals into evidence-backed PMM decision cards:
-
-- Reddit discussions through Reddit OAuth
-- News and competitor signals through NewsAPI
-- CPSC product-recall data through the public CPSC REST API
-- App-review, interview, survey, support-ticket, and past-launch data through CSV connectors
-
-The pipeline:
-
-`Connectors → normalized signal store → theme extraction → evidence aggregation → decision cards`
-
-## Why CSV for app reviews?
-
-Apple's official App Store Connect API can retrieve customer reviews only for apps managed by the authenticated developer account. It is not a general public API for collecting another company's reviews. For a lawful portfolio MVP, this project uses a CSV adapter for app reviews. In production, a company would connect its own App Store Connect account or an approved customer-feedback vendor.
+- eBay-inspired light interface using the four-color accent system
+- launch dropdown with previous launches
+- **Add new launch** form with launch context, outcomes, metrics, voice examples, and seed feedback
+- one-click full pipeline: evidence → intelligence → governance → dashboard
+- chart-led overview with sentiment, themes, source mix, time trend, confidence, and governance outcomes
+- Klarna and eBay U.S. partnership as the default launch
+- synthetic feedback inspired by public themes, clearly labeled as non-representative
+- Airtable connector added to the Signal Hub
+- NewsAPI and Reddit removed from the active Signal Hub
+- Prompt Operations and production runtime policy retained in Agent Configuration
 
 ## Run locally
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate       # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
-streamlit run app.py
+python -m streamlit run streamlit_app.py
 ```
 
-The app runs without credentials using sample Voice-of-Customer data and the public CPSC connector. Add Reddit and NewsAPI credentials to enable those connectors.
+## Agent modes
 
-## MVP scope
+- **Demo (cached):** runs the complete pipeline locally without model calls.
+- **Live (Gemini API):** calls the Customer Intelligence Agent and then the Governance Reviewer.
 
-The first vertical slice intentionally focuses on one PMM question:
+Add the Gemini key to `.env` or Streamlit secrets:
 
-> What customer problem should lead the positioning for a new seller productivity product?
+```text
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-3.1-flash-lite
+GEMINI_REVIEW_MODEL=gemini-3.1-flash-lite
+```
 
-It produces:
+## Airtable connector
 
-- top themes across sources
-- supporting evidence counts
-- source diversity
-- a confidence heuristic
-- a recommended PMM action
-- evidence rows for auditability
+Create an Airtable Personal Access Token with access to the required base and set:
 
-## Production roadmap
+```text
+AIRTABLE_PAT=...
+AIRTABLE_BASE_ID=app...
+AIRTABLE_TABLE_NAME=Customer Signals
+AIRTABLE_VIEW=
+```
 
-1. Replace heuristic themes with an evaluated LLM classification pipeline.
-2. Add a vector store and retrieval for brand guidelines and past GTM material.
-3. Persist normalized events in a warehouse.
-4. Schedule ingestion and incremental updates.
-5. Add human approval, feedback capture, governance, and prompt versioning.
-6. Connect Airtable, Glean, Confluence, GetWhy, Qualtrics, and Zendesk through authorized enterprise APIs.
+Default field names can be changed in **Signal Hub → Airtable connection**.
+
+## Data disclosure
+
+The default Klarna buyer feedback, interview notes, and support tickets are synthetic paraphrases inspired by recurring public themes. They are designed to demonstrate the workflow. They are not verbatim customer quotations and not a representative eBay research study.
+
+Official eBay pages are used for launch and product facts in the organizational-knowledge sample records.
+
+## Product principle
+
+AI recommends. Humans decide.

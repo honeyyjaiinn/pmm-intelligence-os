@@ -4,45 +4,45 @@ import pandas as pd
 
 
 RECOMMENDATIONS = {
-    "Listing effort": {
-        "decision": "Lead positioning with time savings and workflow automation.",
-        "next_action": "Test 'Create high-quality listings faster' with high-volume and growth sellers.",
-        "risk": "Avoid promising fully autonomous listing quality without human review.",
+    "Payment flexibility": {
+        "decision": "Lead with flexibility and purchase control, not with credit novelty.",
+        "next_action": "Test value messages by category and order value, especially electronics, collectibles, fashion, and refurbished goods.",
+        "risk": "Do not frame financing as universally affordable or encourage spending beyond a buyer's means.",
     },
-    "Pricing uncertainty": {
-        "decision": "Make marketplace-informed pricing guidance a core value pillar.",
-        "next_action": "Validate willingness to use price recommendations and identify trust thresholds.",
-        "risk": "Do not imply guaranteed sale price or revenue outcomes.",
+    "Eligibility and checkout": {
+        "decision": "Make eligibility clear before the final checkout step.",
+        "next_action": "Create eligibility messaging for order value, category, shipping origin, delivery method, location, and app version.",
+        "risk": "A listing-level promise that disappears at checkout can reduce trust and conversion.",
     },
-    "Fees and profitability": {
-        "decision": "Address ROI and seller economics directly in messaging.",
-        "next_action": "Build a transparent value calculator and test against fee-sensitive segments.",
-        "risk": "AI messaging cannot compensate for unresolved pricing or policy concerns.",
+    "Cost transparency": {
+        "decision": "Separate Pay in 4 from interest-bearing financing in every message.",
+        "next_action": "Show repayment timing, interest, late-fee risk, and total cost before confirmation.",
+        "risk": "Financial claims and disclosures require Legal and Compliance review.",
     },
-    "Search and discovery": {
-        "decision": "Position the product around visibility and buyer reach—not AI novelty.",
-        "next_action": "Test proof points tied to impressions, qualified traffic, and conversion.",
-        "risk": "Do not promise ranking improvements without substantiated evidence.",
+    "Refunds and returns": {
+        "decision": "Use one joined-up eBay and Klarna explanation for returns and payment-plan changes.",
+        "next_action": "Build a visual refund timeline covering eBay approval, Klarna adjustment, and expected timing.",
+        "risk": "Unclear ownership between two brands can create support loops and trust loss.",
     },
-    "Trust and safety": {
-        "decision": "Elevate trust, authenticity, and risk transparency in the GTM narrative.",
-        "next_action": "Partner with Legal, Trust, and Safety before publishing claims.",
-        "risk": "Safety signals may require escalation rather than marketing action.",
+    "Seller understanding": {
+        "decision": "Explain that Klarna is a buyer payment choice and does not require sellers to manage installments.",
+        "next_action": "Add a seller FAQ covering payout, shipping, buyer default, and returns.",
+        "risk": "Seller confusion can lead to unnecessary delays or incorrect buyer guidance.",
     },
-    "Shipping and fulfillment": {
-        "decision": "Include operational simplicity as a supporting messaging pillar.",
-        "next_action": "Segment feedback by occasional versus professional sellers.",
-        "risk": "Avoid masking policy or carrier problems with copy changes.",
+    "Trust and financial wellbeing": {
+        "decision": "Balance the convenience story with responsible-use language and clear terms.",
+        "next_action": "Review all affordability language with Legal, Compliance, and Customer Trust teams.",
+        "risk": "Overly promotional BNPL messaging can create regulatory, brand, and customer-wellbeing risk.",
     },
-    "App reliability": {
-        "decision": "Treat reliability as a launch-readiness gate, not a messaging problem.",
-        "next_action": "Escalate recurring defects and delay promotion if critical journeys fail.",
-        "risk": "A campaign may amplify negative sentiment when product quality is unstable.",
+    "Experience simplicity": {
+        "decision": "Use the smooth checkout and payment-management experience as supporting proof.",
+        "next_action": "Measure redirect completion, payment-plan visibility, and support contacts after checkout.",
+        "risk": "A simple happy path should not hide eligibility or support friction.",
     },
     "Customer support": {
-        "decision": "Build clear expectation-setting and escalation guidance into launch assets.",
-        "next_action": "Map top support questions into FAQs and in-product education.",
-        "risk": "Do not automate sensitive support decisions without human oversight.",
+        "decision": "Clarify which brand owns each support moment.",
+        "next_action": "Create routing guidance for checkout eligibility, approval decisions, returns, and payment schedules.",
+        "risk": "Customers may be passed between eBay and Klarna when ownership is unclear.",
     },
 }
 

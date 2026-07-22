@@ -1,7 +1,9 @@
-text,rating,created_at,segment
-I manage hundreds of items. My biggest issue is the time it takes to create consistent titles and descriptions.,,2026-06-10,professional seller
-I never know if my price is competitive until an item sits unsold for weeks.,,2026-06-11,growth seller
-"I want automation, but I still need to approve everything before it goes live.",,2026-06-13,professional seller
-"As a new seller, shipping and pricing are the most confusing parts.",,2026-06-15,new seller
-I care less about AI and more about getting my inventory in front of serious buyers.,,2026-06-17,professional seller
-Trust matters. I worry about scams and disputes more than creating the listing.,,2026-06-20,occasional seller
+text,rating,created_at,segment,sentiment,theme,synthetic
+"For a high-value watch, four smaller payments can make the purchase feel possible without lowering the product quality I want.",,2025-05-07,collector,positive,Payment flexibility,true
+"I need to know before checkout whether an item is eligible. Finding out at the last step feels like a broken promise.",,2025-05-20,occasional buyer,negative,Eligibility and checkout,true
+"As a seller, I want buyers to understand that I receive the order normally and do not wait for their installment plan to finish.",,2025-06-06,professional seller,neutral,Seller understanding,true
+"The useful message is flexibility and control, not encouraging people to spend beyond what they can afford.",,2025-06-19,value-focused buyer,neutral,Trust and financial wellbeing,true
+"Returns are already stressful. I want one clear explanation of what eBay handles, what Klarna handles, and when the payment plan changes.",,2025-07-03,returning buyer,negative,Refunds and returns,true
+"Pay in 4 is easy to understand, but longer financing needs a much clearer total-cost explanation.",,2025-07-18,high-ticket buyer,neutral,Cost transparency,true
+"I would notice Klarna most on electronics, collectibles, and refurbished products where the price is higher than an everyday purchase.",,2025-08-01,collector,positive,Payment flexibility,true
+"When the payment choice works, it feels simple. When it is declined, the handoff between eBay and Klarna becomes confusing.",,2025-08-22,mobile buyer,negative,Customer support,true
