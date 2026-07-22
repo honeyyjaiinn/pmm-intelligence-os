@@ -2211,7 +2211,7 @@ def render_overview_tab() -> None:
 def render_signal_hub_tab() -> None:
     st.markdown('<div class="section-title">Signal Hub</div>', unsafe_allow_html=True)
     st.caption(
-        "Choose the evidence sources used by the one-click pipeline. NewsAPI and Reddit have been removed; Airtable is available as the enterprise signal source."
+        "Choose the evidence sources used by the one-click pipeline."
     )
 
     source_cols = st.columns(3)
