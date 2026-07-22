@@ -310,6 +310,13 @@ def _activate_launch(launch_id: str) -> None:
     _refresh_evidence()
 
 
+def _reset_demo() -> None:
+    # Return the portfolio demo to its clean interview starting state.
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+
+
 # ---------------------------------------------------------------------------
 # Signal preparation
 # ---------------------------------------------------------------------------
@@ -1322,6 +1329,17 @@ def render_sidebar() -> None:
         if st.session_state.last_run_at:
             run_time = datetime.fromisoformat(st.session_state.last_run_at)
             st.caption(f"Last run: {run_time.strftime('%b %d, %Y · %I:%M %p')}")
+
+        if st.button(
+            "Reset demo",
+            key="reset_demo_button",
+            use_container_width=True,
+            help=(
+                "Restore the original Klarna launch, default configuration, "
+                "sample evidence, and clear previous pipeline results."
+            ),
+        ):
+            _reset_demo()
 
         if st.session_state.connector_errors:
             with st.expander("Connector notes"):
